@@ -67,6 +67,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/json/
 
 flutter_native_splash:
   image: "assets/images/bg.png"

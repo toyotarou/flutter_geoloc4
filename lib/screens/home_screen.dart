@@ -11,9 +11,11 @@ import 'package:permission_handler/permission_handler.dart';
 import '../collections/geoloc.dart';
 import '../collections/kotlin_room_data.dart';
 import '../controllers/controllers_mixin.dart';
+import '../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../enums/map_type.dart';
 import '../extensions/extensions.dart';
 import '../models/geoloc_model.dart';
+import '../models/municipal_model.dart';
 import '../models/temple_latlng_model.dart';
 import '../models/walk_record_model.dart';
 import '../ripository/geolocs_repository.dart';
@@ -130,6 +132,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
   List<Geoloc>? geolocList = <Geoloc>[];
   Map<String, List<Geoloc>> geolocMap = <String, List<Geoloc>>{};
 
+  List<MunicipalModel> tokyoMunicipalList = [];
+
+  Map<String, MunicipalModel> tokyoMunicipalMap = {};
+
   ///
   @override
   void initState() {
@@ -219,6 +225,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
         }
       });
     }
+
+    tokyoMunicipalList = ref.watch(tokyoMunicipalProvider.select((value) => value.tokyoMunicipalList));
+
+    tokyoMunicipalMap = ref.watch(tokyoMunicipalProvider.select((value) => value.tokyoMunicipalMap));
 
     return Scaffold(
       appBar: AppBar(
@@ -704,6 +714,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                         onPressed: (geolocMap[generateYmd] == null)
                                             ? null
                                             : () async {
+                                                // print(tokyoMunicipalList.length);
+                                                // print(tokyoMunicipalMap.length);
+                                                //
+                                                //
+                                                //
+                                                //
+                                                //
+
                                                 // ignore: prefer_final_locals
                                                 List<KotlinRoomData>? list = <KotlinRoomData>[];
 
@@ -757,6 +775,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                         onPressed: (geolocStateMap[generateYmd] == null)
                                             ? null
                                             : () {
+                                                // print(tokyoMunicipalList.length);
+                                                // print(tokyoMunicipalMap.length);
+                                                //
+                                                //
+                                                //
+                                                //
+                                                //
+                                                //
+                                                //
+                                                //
+
                                                 appParamNotifier.setIsMarkerShow(flag: true);
 
                                                 appParamNotifier.setMapType(type: MapType.daily);

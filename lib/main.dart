@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'controllers/tokyo_municipal/tokyo_municipal.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -20,9 +21,22 @@ void main() async {
       .then((_) => runApp(const ProviderScope(child: MyApp())));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    ref.read(tokyoMunicipalProvider.notifier).getAllTokyoMunicipalData();
+  }
+
+  ///
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

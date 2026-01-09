@@ -8,11 +8,13 @@ import 'package:latlong2/latlong.dart';
 
 import '../../controllers/controllers_mixin.dart';
 import '../../controllers/lat_lng_address/lat_lng_address.dart';
+import '../../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../../enums/map_type.dart';
 import '../../extensions/extensions.dart';
 import '../../mixin/geoloc_map_control_panel/geoloc_map_control_panel_widget.dart';
 import '../../models/geoloc_model.dart';
 import '../../models/lat_lng_address.dart';
+import '../../models/municipal_model.dart';
 import '../../models/temple_latlng_model.dart';
 import '../../models/temple_photo_model.dart';
 import '../../models/walk_record_model.dart';
@@ -150,35 +152,10 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       },
     );
 
-
-
-
-    print(widget.geolocStateList.length);
-
-
-
-
-
-
     sortedWidgetGeolocStateList = widget.geolocStateList
       ..sort(
           (GeolocModel a, GeolocModel b) => '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}'))
       ..sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
-
-
-
-
-
-    print(sortedWidgetGeolocStateList.length);
-
-
-
-
-
-
-
-
-
   }
 
   ///
@@ -999,20 +976,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   ///
   void makeMarker() {
     markerList = <Marker>[];
-
-
-
-
-
-
-
-
-    print(gStateList.length);
-
-
-
-
-
 
     for (final GeolocModel element in gStateList) {
       final bool isRed = emphasisMarkers.contains(LatLng(element.latitude.toDouble(), element.longitude.toDouble()));

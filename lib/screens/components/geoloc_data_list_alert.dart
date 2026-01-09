@@ -8,7 +8,6 @@ import '../../extensions/extensions.dart';
 import '../../models/geoloc_model.dart';
 import '../../ripository/geolocs_repository.dart';
 import '../home_screen.dart';
-import '../parts/error_dialog.dart';
 
 class GeolocDataListAlert extends ConsumerStatefulWidget {
   const GeolocDataListAlert({super.key, this.geolocList, required this.geolocStateMap});

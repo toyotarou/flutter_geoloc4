@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../collections/geoloc.dart';
-
 import '../../controllers/controllers_mixin.dart';
+import '../../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../../enums/map_type.dart';
 import '../../extensions/extensions.dart';
 import '../../models/geoloc_model.dart';
+import '../../models/municipal_model.dart';
 import '../../models/temple_latlng_model.dart';
 import '../../models/walk_record_model.dart';
 import '../../utilities/utilities.dart';
@@ -82,9 +83,6 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
                                   context: context,
                                   widget: GeolocMapAlert(
                                     displayMonthMap: false,
-
-                                    ///
-
                                     date: widget.date,
                                     geolocStateList: list,
                                     displayTempMap: true,
@@ -251,7 +249,13 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
                 // ignore: use_build_context_synchronously
                 context,
                 // ignore: inference_failure_on_instance_creation, always_specify_types
-                MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: widget.date.yyyymm)),
+                MaterialPageRoute(
+                  builder: (BuildContext context) => HomeScreen(
+                    baseYm: widget.date.yyyymm,
+                    tokyoMunicipalList: appParamState.keepTokyoMunicipalList,
+                    tokyoMunicipalMap: appParamState.keepTokyoMunicipalMap,
+                  ),
+                ),
               );
             },
           );
@@ -299,7 +303,11 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
             context,
             // ignore: inference_failure_on_instance_creation, always_specify_types
             MaterialPageRoute(
-              builder: (BuildContext context) => HomeScreen(baseYm: widget.date.yyyymm),
+              builder: (BuildContext context) => HomeScreen(
+                baseYm: widget.date.yyyymm,
+                tokyoMunicipalList: appParamState.keepTokyoMunicipalList,
+                tokyoMunicipalMap: appParamState.keepTokyoMunicipalMap,
+              ),
             ),
           );
         },

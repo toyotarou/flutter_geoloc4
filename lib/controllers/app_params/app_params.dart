@@ -7,6 +7,7 @@ import '../../collections/geoloc.dart';
 import '../../collections/kotlin_room_data.dart';
 import '../../enums/map_type.dart';
 import '../../models/geoloc_model.dart';
+import '../../models/municipal_model.dart';
 import '../../models/temple_latlng_model.dart';
 
 part 'app_params.freezed.dart';
@@ -53,8 +54,15 @@ class AppParamsState with _$AppParamsState {
     @Default('') String mapControlDisplayDate,
 
     ///
-    @Default(<dynamic>[]) List<Geoloc> selectedGeolocListForDelete,
-    @Default(<dynamic>[]) List<KotlinRoomData> selectedKotlinRoomDataListForDelete,
+    @Default(<Geoloc>[]) List<Geoloc> selectedGeolocListForDelete,
+    @Default(<KotlinRoomData>[]) List<KotlinRoomData> selectedKotlinRoomDataListForDelete,
+
+    ///
+    @Default(<MunicipalModel>[]) List<MunicipalModel> keepTokyoMunicipalList,
+    @Default(<String, MunicipalModel>{}) Map<String, MunicipalModel> keepTokyoMunicipalMap,
+
+    ///
+    @Default(<List<List<List<double>>>>[]) List<List<List<List<double>>>> keepAllPolygonsList,
   }) = _AppParamsState;
 }
 
@@ -162,4 +170,16 @@ class AppParams extends _$AppParams {
 
     state = state.copyWith(selectedKotlinRoomDataListForDelete: list);
   }
+
+  ///
+  void setKeepTokyoMunicipalList({required List<MunicipalModel> list}) =>
+      state = state.copyWith(keepTokyoMunicipalList: list);
+
+  ///
+  void setKeepTokyoMunicipalMap({required Map<String, MunicipalModel> map}) =>
+      state = state.copyWith(keepTokyoMunicipalMap: map);
+
+  ///
+  void setKeepAllPolygonsList({required List<List<List<List<double>>>> list}) =>
+      state = state.copyWith(keepAllPolygonsList: list);
 }

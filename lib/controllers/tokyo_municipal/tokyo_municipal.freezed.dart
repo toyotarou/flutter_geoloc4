@@ -21,9 +21,7 @@ mixin _$TokyoMunicipalState {
   Map<String, MunicipalModel> get tokyoMunicipalMap =>
       throw _privateConstructorUsedError;
 
-  /// Create a copy of TokyoMunicipalState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TokyoMunicipalStateCopyWith<TokyoMunicipalState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,8 +47,6 @@ class _$TokyoMunicipalStateCopyWithImpl<$Res, $Val extends TokyoMunicipalState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TokyoMunicipalState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -91,8 +87,6 @@ class __$$TokyoMunicipalStateImplCopyWithImpl<$Res>
       $Res Function(_$TokyoMunicipalStateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of TokyoMunicipalState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -164,9 +158,7 @@ class _$TokyoMunicipalStateImpl implements _TokyoMunicipalState {
       const DeepCollectionEquality().hash(_tokyoMunicipalList),
       const DeepCollectionEquality().hash(_tokyoMunicipalMap));
 
-  /// Create a copy of TokyoMunicipalState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TokyoMunicipalStateImplCopyWith<_$TokyoMunicipalStateImpl> get copyWith =>
@@ -184,11 +176,8 @@ abstract class _TokyoMunicipalState implements TokyoMunicipalState {
   List<MunicipalModel> get tokyoMunicipalList;
   @override
   Map<String, MunicipalModel> get tokyoMunicipalMap;
-
-  /// Create a copy of TokyoMunicipalState
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TokyoMunicipalStateImplCopyWith<_$TokyoMunicipalStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

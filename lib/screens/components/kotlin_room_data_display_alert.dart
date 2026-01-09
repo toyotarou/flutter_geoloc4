@@ -1,23 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../collections/kotlin_room_data.dart';
+import '../../controllers/controllers_mixin.dart';
 import '../../extensions/extensions.dart';
 import '../../pigeon/wifi_location.dart';
 import '../../ripository/kotlin_room_data_repository.dart';
 import '../home_screen.dart';
 import '../parts/error_dialog.dart';
 
-class KotlinRoomDataDisplayAlert extends StatefulWidget {
+class KotlinRoomDataDisplayAlert extends ConsumerStatefulWidget {
   const KotlinRoomDataDisplayAlert({super.key});
 
   @override
-  State<KotlinRoomDataDisplayAlert> createState() => _KotlinRoomDataDisplayAlertState();
+  ConsumerState<KotlinRoomDataDisplayAlert> createState() => _KotlinRoomDataDisplayAlertState();
 }
 
-class _KotlinRoomDataDisplayAlertState extends State<KotlinRoomDataDisplayAlert> {
+class _KotlinRoomDataDisplayAlertState extends ConsumerState<KotlinRoomDataDisplayAlert>
+    with ControllersMixin<KotlinRoomDataDisplayAlert> {
   bool _isRunning = false;
 
   bool _isLoading = false;
@@ -347,7 +350,13 @@ class _KotlinRoomDataDisplayAlertState extends State<KotlinRoomDataDisplayAlert>
             // ignore: use_build_context_synchronously
             context,
             // ignore: inference_failure_on_instance_creation, always_specify_types
-            MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: DateTime.now().yyyymm)),
+            MaterialPageRoute(
+              builder: (BuildContext context) => HomeScreen(
+                baseYm: DateTime.now().yyyymm,
+                tokyoMunicipalList: appParamState.keepTokyoMunicipalList,
+                tokyoMunicipalMap: appParamState.keepTokyoMunicipalMap,
+              ),
+            ),
           );
         }
       },

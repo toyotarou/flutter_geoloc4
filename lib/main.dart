@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'controllers/tokyo_municipal/tokyo_municipal.dart';
+import 'controllers/controllers_mixin.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -28,12 +28,12 @@ class MyApp extends ConsumerStatefulWidget {
   ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends ConsumerState<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> with ControllersMixin<MyApp> {
   @override
   void initState() {
     super.initState();
 
-    ref.read(tokyoMunicipalProvider.notifier).getAllTokyoMunicipalData();
+    tokyoMunicipalNotifier.getAllTokyoMunicipalData();
   }
 
   ///
@@ -62,7 +62,12 @@ class _MyAppState extends ConsumerState<MyApp> {
       themeMode: ThemeMode.dark,
       title: 'geoloc note',
       debugShowCheckedModeBanner: false,
-      home: GestureDetector(onTap: () => primaryFocus?.unfocus(), child: HomeScreen()),
+      home: GestureDetector(
+          onTap: () => primaryFocus?.unfocus(),
+          child: HomeScreen(
+            tokyoMunicipalList: tokyoMunicipalState.tokyoMunicipalList,
+            tokyoMunicipalMap: tokyoMunicipalState.tokyoMunicipalMap,
+          )),
     );
   }
 }

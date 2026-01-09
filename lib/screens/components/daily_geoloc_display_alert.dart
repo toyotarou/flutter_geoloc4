@@ -12,13 +12,14 @@ import '../parts/geoloc_dialog.dart';
 import 'pickup_geoloc_display_alert.dart';
 
 class DailyGeolocDisplayAlert extends StatefulWidget {
-  const DailyGeolocDisplayAlert(
-      {super.key,
-      required this.date,
-      required this.geolocStateList,
-      required this.walkRecord,
-      this.templeInfoMap,
-      this.kotlinRoomDataList});
+  const DailyGeolocDisplayAlert({
+    super.key,
+    required this.date,
+    required this.geolocStateList,
+    required this.walkRecord,
+    this.templeInfoMap,
+    this.kotlinRoomDataList,
+  });
 
   final DateTime date;
   final List<GeolocModel> geolocStateList;

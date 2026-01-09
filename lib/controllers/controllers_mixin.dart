@@ -10,6 +10,7 @@ import 'holidays/holidays_response_state.dart';
 import 'temple/temple.dart';
 import 'temple_photo/temple_photo_notifier.dart';
 import 'temple_photo/temple_photo_response_state.dart';
+import 'tokyo_municipal/tokyo_municipal.dart';
 import 'walk_record/walk_record.dart';
 
 mixin ControllersMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
@@ -54,6 +55,12 @@ mixin ControllersMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   WalkRecordControllerState get walkRecordState => ref.watch(walkRecordControllerProvider);
 
   WalkRecordController get walkRecordNotifier => ref.read(walkRecordControllerProvider.notifier);
+
+//==========================================//
+
+  TokyoMunicipalState get tokyoMunicipalState => ref.watch(tokyoMunicipalProvider);
+
+  TokyoMunicipal get tokyoMunicipalNotifier => ref.read(tokyoMunicipalProvider.notifier);
 
 //==========================================//
 }

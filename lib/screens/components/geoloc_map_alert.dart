@@ -8,17 +8,17 @@ import 'package:latlong2/latlong.dart';
 
 import '../../controllers/controllers_mixin.dart';
 import '../../controllers/lat_lng_address/lat_lng_address.dart';
-import '../../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../../enums/map_type.dart';
 import '../../extensions/extensions.dart';
 import '../../mixin/geoloc_map_control_panel/geoloc_map_control_panel_widget.dart';
 import '../../models/geoloc_model.dart';
 import '../../models/lat_lng_address.dart';
-import '../../models/municipal_model.dart';
 import '../../models/temple_latlng_model.dart';
 import '../../models/temple_photo_model.dart';
 import '../../models/walk_record_model.dart';
+import '../../utilities/functions.dart';
 import '../../utilities/tile_provider.dart';
+import '../../utilities/utilities.dart';
 import '../parts/button_error_overlay.dart';
 import '../parts/error_dialog.dart';
 import '../parts/geoloc_overlay.dart';
@@ -110,6 +110,10 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   String? monthDaysDateStr;
 
   final GlobalKey monthDaysPageViewKey = GlobalKey();
+
+  Utility utility = Utility();
+
+  List<Color> fortyEightColor = <Color>[];
 
   ///
   @override
@@ -223,6 +227,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       templePhotoDateMap = templePhotoState.templePhotoDateMap.value!;
     }
 
+    fortyEightColor = utility.getFortyEightColor();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -247,6 +253,16 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                 tileProvider: CachedTileProvider(),
                 userAgentPackageName: 'com.example.app',
               ),
+
+              if (appParamState.keepAllPolygonsList.isNotEmpty) ...<Widget>[
+                // ignore: always_specify_types
+                PolygonLayer(
+                  polygons: makeAreaPolygons(
+                    allPolygonsList: appParamState.keepAllPolygonsList,
+                    fortyEightColor: fortyEightColor,
+                  ),
+                ),
+              ],
 
               if (appParamState.isMarkerShow) ...<Widget>[MarkerLayer(markers: markerList)],
 

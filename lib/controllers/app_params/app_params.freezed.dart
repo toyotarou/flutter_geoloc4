@@ -56,6 +56,16 @@ mixin _$AppParamsState {
   List<KotlinRoomData> get selectedKotlinRoomDataListForDelete =>
       throw _privateConstructorUsedError;
 
+  ///
+  List<MunicipalModel> get keepTokyoMunicipalList =>
+      throw _privateConstructorUsedError;
+  Map<String, MunicipalModel> get keepTokyoMunicipalMap =>
+      throw _privateConstructorUsedError;
+
+  ///
+  List<List<List<List<double>>>> get keepAllPolygonsList =>
+      throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $AppParamsStateCopyWith<AppParamsState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -90,7 +100,10 @@ abstract class $AppParamsStateCopyWith<$Res> {
       MapType? mapType,
       String mapControlDisplayDate,
       List<Geoloc> selectedGeolocListForDelete,
-      List<KotlinRoomData> selectedKotlinRoomDataListForDelete});
+      List<KotlinRoomData> selectedKotlinRoomDataListForDelete,
+      List<MunicipalModel> keepTokyoMunicipalList,
+      Map<String, MunicipalModel> keepTokyoMunicipalMap,
+      List<List<List<List<double>>>> keepAllPolygonsList});
 }
 
 /// @nodoc
@@ -129,6 +142,9 @@ class _$AppParamsStateCopyWithImpl<$Res, $Val extends AppParamsState>
     Object? mapControlDisplayDate = null,
     Object? selectedGeolocListForDelete = null,
     Object? selectedKotlinRoomDataListForDelete = null,
+    Object? keepTokyoMunicipalList = null,
+    Object? keepTokyoMunicipalMap = null,
+    Object? keepAllPolygonsList = null,
   }) {
     return _then(_value.copyWith(
       calendarSelectedDate: freezed == calendarSelectedDate
@@ -225,6 +241,18 @@ class _$AppParamsStateCopyWithImpl<$Res, $Val extends AppParamsState>
           ? _value.selectedKotlinRoomDataListForDelete
           : selectedKotlinRoomDataListForDelete // ignore: cast_nullable_to_non_nullable
               as List<KotlinRoomData>,
+      keepTokyoMunicipalList: null == keepTokyoMunicipalList
+          ? _value.keepTokyoMunicipalList
+          : keepTokyoMunicipalList // ignore: cast_nullable_to_non_nullable
+              as List<MunicipalModel>,
+      keepTokyoMunicipalMap: null == keepTokyoMunicipalMap
+          ? _value.keepTokyoMunicipalMap
+          : keepTokyoMunicipalMap // ignore: cast_nullable_to_non_nullable
+              as Map<String, MunicipalModel>,
+      keepAllPolygonsList: null == keepAllPolygonsList
+          ? _value.keepAllPolygonsList
+          : keepAllPolygonsList // ignore: cast_nullable_to_non_nullable
+              as List<List<List<List<double>>>>,
     ) as $Val);
   }
 }
@@ -260,7 +288,10 @@ abstract class _$$AppParamsStateImplCopyWith<$Res>
       MapType? mapType,
       String mapControlDisplayDate,
       List<Geoloc> selectedGeolocListForDelete,
-      List<KotlinRoomData> selectedKotlinRoomDataListForDelete});
+      List<KotlinRoomData> selectedKotlinRoomDataListForDelete,
+      List<MunicipalModel> keepTokyoMunicipalList,
+      Map<String, MunicipalModel> keepTokyoMunicipalMap,
+      List<List<List<List<double>>>> keepAllPolygonsList});
 }
 
 /// @nodoc
@@ -297,6 +328,9 @@ class __$$AppParamsStateImplCopyWithImpl<$Res>
     Object? mapControlDisplayDate = null,
     Object? selectedGeolocListForDelete = null,
     Object? selectedKotlinRoomDataListForDelete = null,
+    Object? keepTokyoMunicipalList = null,
+    Object? keepTokyoMunicipalMap = null,
+    Object? keepAllPolygonsList = null,
   }) {
     return _then(_$AppParamsStateImpl(
       calendarSelectedDate: freezed == calendarSelectedDate
@@ -393,6 +427,18 @@ class __$$AppParamsStateImplCopyWithImpl<$Res>
           ? _value._selectedKotlinRoomDataListForDelete
           : selectedKotlinRoomDataListForDelete // ignore: cast_nullable_to_non_nullable
               as List<KotlinRoomData>,
+      keepTokyoMunicipalList: null == keepTokyoMunicipalList
+          ? _value._keepTokyoMunicipalList
+          : keepTokyoMunicipalList // ignore: cast_nullable_to_non_nullable
+              as List<MunicipalModel>,
+      keepTokyoMunicipalMap: null == keepTokyoMunicipalMap
+          ? _value._keepTokyoMunicipalMap
+          : keepTokyoMunicipalMap // ignore: cast_nullable_to_non_nullable
+              as Map<String, MunicipalModel>,
+      keepAllPolygonsList: null == keepAllPolygonsList
+          ? _value._keepAllPolygonsList
+          : keepAllPolygonsList // ignore: cast_nullable_to_non_nullable
+              as List<List<List<List<double>>>>,
     ));
   }
 }
@@ -422,9 +468,15 @@ class _$AppParamsStateImpl implements _AppParamsState {
       this.selectedTimeGeolocIndex = -1,
       this.mapType,
       this.mapControlDisplayDate = '',
-      final List<Geoloc> selectedGeolocListForDelete = const [],
+      final List<Geoloc> selectedGeolocListForDelete = const <Geoloc>[],
       final List<KotlinRoomData> selectedKotlinRoomDataListForDelete =
-          const []})
+          const <KotlinRoomData>[],
+      final List<MunicipalModel> keepTokyoMunicipalList =
+          const <MunicipalModel>[],
+      final Map<String, MunicipalModel> keepTokyoMunicipalMap =
+          const <String, MunicipalModel>{},
+      final List<List<List<List<double>>>> keepAllPolygonsList =
+          const <List<List<List<double>>>>[]})
       : _bigEntries = bigEntries,
         _monthGeolocAddMonthButtonLabelList =
             monthGeolocAddMonthButtonLabelList,
@@ -432,7 +484,10 @@ class _$AppParamsStateImpl implements _AppParamsState {
         _secondEntries = secondEntries,
         _selectedGeolocListForDelete = selectedGeolocListForDelete,
         _selectedKotlinRoomDataListForDelete =
-            selectedKotlinRoomDataListForDelete;
+            selectedKotlinRoomDataListForDelete,
+        _keepTokyoMunicipalList = keepTokyoMunicipalList,
+        _keepTokyoMunicipalMap = keepTokyoMunicipalMap,
+        _keepAllPolygonsList = keepAllPolygonsList;
 
   @override
   final DateTime? calendarSelectedDate;
@@ -552,9 +607,45 @@ class _$AppParamsStateImpl implements _AppParamsState {
     return EqualUnmodifiableListView(_selectedKotlinRoomDataListForDelete);
   }
 
+  ///
+  final List<MunicipalModel> _keepTokyoMunicipalList;
+
+  ///
+  @override
+  @JsonKey()
+  List<MunicipalModel> get keepTokyoMunicipalList {
+    if (_keepTokyoMunicipalList is EqualUnmodifiableListView)
+      return _keepTokyoMunicipalList;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_keepTokyoMunicipalList);
+  }
+
+  final Map<String, MunicipalModel> _keepTokyoMunicipalMap;
+  @override
+  @JsonKey()
+  Map<String, MunicipalModel> get keepTokyoMunicipalMap {
+    if (_keepTokyoMunicipalMap is EqualUnmodifiableMapView)
+      return _keepTokyoMunicipalMap;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_keepTokyoMunicipalMap);
+  }
+
+  ///
+  final List<List<List<List<double>>>> _keepAllPolygonsList;
+
+  ///
+  @override
+  @JsonKey()
+  List<List<List<List<double>>>> get keepAllPolygonsList {
+    if (_keepAllPolygonsList is EqualUnmodifiableListView)
+      return _keepAllPolygonsList;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_keepAllPolygonsList);
+  }
+
   @override
   String toString() {
-    return 'AppParamsState(calendarSelectedDate: $calendarSelectedDate, selectedTimeGeoloc: $selectedTimeGeoloc, isMarkerShow: $isMarkerShow, currentZoom: $currentZoom, currentPaddingIndex: $currentPaddingIndex, currentCenter: $currentCenter, isTempleCircleShow: $isTempleCircleShow, polylineGeolocModel: $polylineGeolocModel, selectedTemple: $selectedTemple, timeGeolocDisplayStart: $timeGeolocDisplayStart, timeGeolocDisplayEnd: $timeGeolocDisplayEnd, bigEntries: $bigEntries, setStateCallback: $setStateCallback, monthGeolocAddMonthButtonLabelList: $monthGeolocAddMonthButtonLabelList, overlayPosition: $overlayPosition, firstEntries: $firstEntries, secondEntries: $secondEntries, visitedTempleMapDisplayFinish: $visitedTempleMapDisplayFinish, selectedTimeGeolocIndex: $selectedTimeGeolocIndex, mapType: $mapType, mapControlDisplayDate: $mapControlDisplayDate, selectedGeolocListForDelete: $selectedGeolocListForDelete, selectedKotlinRoomDataListForDelete: $selectedKotlinRoomDataListForDelete)';
+    return 'AppParamsState(calendarSelectedDate: $calendarSelectedDate, selectedTimeGeoloc: $selectedTimeGeoloc, isMarkerShow: $isMarkerShow, currentZoom: $currentZoom, currentPaddingIndex: $currentPaddingIndex, currentCenter: $currentCenter, isTempleCircleShow: $isTempleCircleShow, polylineGeolocModel: $polylineGeolocModel, selectedTemple: $selectedTemple, timeGeolocDisplayStart: $timeGeolocDisplayStart, timeGeolocDisplayEnd: $timeGeolocDisplayEnd, bigEntries: $bigEntries, setStateCallback: $setStateCallback, monthGeolocAddMonthButtonLabelList: $monthGeolocAddMonthButtonLabelList, overlayPosition: $overlayPosition, firstEntries: $firstEntries, secondEntries: $secondEntries, visitedTempleMapDisplayFinish: $visitedTempleMapDisplayFinish, selectedTimeGeolocIndex: $selectedTimeGeolocIndex, mapType: $mapType, mapControlDisplayDate: $mapControlDisplayDate, selectedGeolocListForDelete: $selectedGeolocListForDelete, selectedKotlinRoomDataListForDelete: $selectedKotlinRoomDataListForDelete, keepTokyoMunicipalList: $keepTokyoMunicipalList, keepTokyoMunicipalMap: $keepTokyoMunicipalMap, keepAllPolygonsList: $keepAllPolygonsList)';
   }
 
   @override
@@ -612,7 +703,13 @@ class _$AppParamsStateImpl implements _AppParamsState {
                 _selectedGeolocListForDelete) &&
             const DeepCollectionEquality().equals(
                 other._selectedKotlinRoomDataListForDelete,
-                _selectedKotlinRoomDataListForDelete));
+                _selectedKotlinRoomDataListForDelete) &&
+            const DeepCollectionEquality().equals(
+                other._keepTokyoMunicipalList, _keepTokyoMunicipalList) &&
+            const DeepCollectionEquality()
+                .equals(other._keepTokyoMunicipalMap, _keepTokyoMunicipalMap) &&
+            const DeepCollectionEquality()
+                .equals(other._keepAllPolygonsList, _keepAllPolygonsList));
   }
 
   @override
@@ -642,7 +739,10 @@ class _$AppParamsStateImpl implements _AppParamsState {
         mapControlDisplayDate,
         const DeepCollectionEquality().hash(_selectedGeolocListForDelete),
         const DeepCollectionEquality()
-            .hash(_selectedKotlinRoomDataListForDelete)
+            .hash(_selectedKotlinRoomDataListForDelete),
+        const DeepCollectionEquality().hash(_keepTokyoMunicipalList),
+        const DeepCollectionEquality().hash(_keepTokyoMunicipalMap),
+        const DeepCollectionEquality().hash(_keepAllPolygonsList)
       ]);
 
   @JsonKey(ignore: true)
@@ -677,7 +777,10 @@ abstract class _AppParamsState implements AppParamsState {
           final MapType? mapType,
           final String mapControlDisplayDate,
           final List<Geoloc> selectedGeolocListForDelete,
-          final List<KotlinRoomData> selectedKotlinRoomDataListForDelete}) =
+          final List<KotlinRoomData> selectedKotlinRoomDataListForDelete,
+          final List<MunicipalModel> keepTokyoMunicipalList,
+          final Map<String, MunicipalModel> keepTokyoMunicipalMap,
+          final List<List<List<List<double>>>> keepAllPolygonsList}) =
       _$AppParamsStateImpl;
 
   @override
@@ -738,6 +841,16 @@ abstract class _AppParamsState implements AppParamsState {
   List<Geoloc> get selectedGeolocListForDelete;
   @override
   List<KotlinRoomData> get selectedKotlinRoomDataListForDelete;
+  @override
+
+  ///
+  List<MunicipalModel> get keepTokyoMunicipalList;
+  @override
+  Map<String, MunicipalModel> get keepTokyoMunicipalMap;
+  @override
+
+  ///
+  List<List<List<List<double>>>> get keepAllPolygonsList;
   @override
   @JsonKey(ignore: true)
   _$$AppParamsStateImplCopyWith<_$AppParamsStateImpl> get copyWith =>

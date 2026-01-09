@@ -211,7 +211,13 @@ class _KotlinRoomDataListAlertState extends ConsumerState<KotlinRoomDataListAler
                     // ignore: use_build_context_synchronously
                     context,
                     // ignore: inference_failure_on_instance_creation, always_specify_types
-                    MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: DateTime.now().yyyymm)),
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => HomeScreen(
+                        baseYm: DateTime.now().yyyymm,
+                        tokyoMunicipalList: appParamState.keepTokyoMunicipalList,
+                        tokyoMunicipalMap: appParamState.keepTokyoMunicipalMap,
+                      ),
+                    ),
                   );
                 },
               );

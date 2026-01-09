@@ -11,7 +11,6 @@ import 'package:permission_handler/permission_handler.dart';
 import '../collections/geoloc.dart';
 import '../collections/kotlin_room_data.dart';
 import '../controllers/controllers_mixin.dart';
-import '../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../enums/map_type.dart';
 import '../extensions/extensions.dart';
 import '../models/geoloc_model.dart';
@@ -71,19 +70,11 @@ void backgroundHandler(Location data) {
         isInsert = true;
       }
 
-//      debugPrint(secondDiff.toString());
-
       if (secondDiff >= 60) {
         isInsert = true;
       }
 
       if (isInsert) {
-        // debugPrint('---------');
-        // debugPrint(DateTime.now().toString());
-        // debugPrint(data.lat.toString());
-        // debugPrint(data.lng.toString());
-        // debugPrint('---------');
-
         await IsarRepository.configure();
         IsarRepository.isar.writeTxnSync(() => IsarRepository.isar.geolocs.putSync(geoloc));
       }
@@ -91,13 +82,16 @@ void backgroundHandler(Location data) {
   });
 }
 
-// ignore: must_be_immutable, unreachable_from_main
+// ignore: unreachable_from_main, must_be_immutable
 class HomeScreen extends ConsumerStatefulWidget {
   // ignore: unreachable_from_main
-  HomeScreen({super.key, this.baseYm});
+  HomeScreen({super.key, this.baseYm, required this.tokyoMunicipalList, required this.tokyoMunicipalMap});
 
   // ignore: unreachable_from_main
   String? baseYm;
+
+  final List<MunicipalModel> tokyoMunicipalList;
+  final Map<String, MunicipalModel> tokyoMunicipalMap;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -131,10 +125,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
   List<Geoloc>? geolocList = <Geoloc>[];
   Map<String, List<Geoloc>> geolocMap = <String, List<Geoloc>>{};
-
-  List<MunicipalModel> tokyoMunicipalList = [];
-
-  Map<String, MunicipalModel> tokyoMunicipalMap = {};
 
   ///
   @override
@@ -226,9 +216,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
       });
     }
 
-    tokyoMunicipalList = ref.watch(tokyoMunicipalProvider.select((value) => value.tokyoMunicipalList));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
+      }
 
-    tokyoMunicipalMap = ref.watch(tokyoMunicipalProvider.select((value) => value.tokyoMunicipalMap));
+      appParamNotifier.setKeepTokyoMunicipalList(list: widget.tokyoMunicipalList);
+      appParamNotifier.setKeepTokyoMunicipalMap(map: widget.tokyoMunicipalMap);
+
+      //===========================================//
+
+      final List<List<List<List<double>>>> allPolygonsList = <List<List<List<double>>>>[];
+
+      for (final MunicipalModel element in widget.tokyoMunicipalList) {
+        allPolygonsList.addAll(element.polygons);
+      }
+
+      ///////////////////////
+
+      // ignore: always_specify_types
+      Future(() {
+        appParamNotifier.setKeepAllPolygonsList(list: allPolygonsList);
+      });
+      //===========================================//
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -338,11 +349,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                             step: 0,
                             distance: 0,
                           ),
-
                           templeInfoList: (widget.baseYm == null)
                               ? templeState.templeInfoMap['${DateTime.now().yyyymm}-01']
                               : templeState.templeInfoMap['${widget.baseYm}-01'],
-
                           monthDaysFirstDateTempleExists: monthDaysFirstDateTempleExists,
                         ),
                         executeFunctionWhenDialogClose: true,
@@ -366,9 +375,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                         context: context,
                         widget: GeolocMapAlert(
                           displayMonthMap: true,
-
-                          ///
-
                           date:
                               (widget.baseYm == null) ? DateTime.now() : DateTime.parse('${widget.baseYm}-01 00:00:00'),
                           geolocStateList: monthGeolocModelList,
@@ -475,8 +481,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                   context,
                   // ignore: inference_failure_on_instance_creation, always_specify_types
                   MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        HomeScreen(baseYm: (widget.baseYm != null) ? widget.baseYm : DateTime.now().yyyymm),
+                    builder: (BuildContext context) => HomeScreen(
+                      baseYm: (widget.baseYm != null) ? widget.baseYm : DateTime.now().yyyymm,
+                      tokyoMunicipalList: widget.tokyoMunicipalList,
+                      tokyoMunicipalMap: widget.tokyoMunicipalMap,
+                    ),
                   ),
                 ),
                 child: Row(
@@ -499,7 +508,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                   Navigator.pushReplacement(
                     context,
                     // ignore: inference_failure_on_instance_creation, always_specify_types
-                    MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: DateTime.now().yyyymm)),
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => HomeScreen(
+                        baseYm: DateTime.now().yyyymm,
+                        tokyoMunicipalList: widget.tokyoMunicipalList,
+                        tokyoMunicipalMap: widget.tokyoMunicipalMap,
+                      ),
+                    ),
                   );
                 },
                 child: Row(
@@ -714,14 +729,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                         onPressed: (geolocMap[generateYmd] == null)
                                             ? null
                                             : () async {
-                                                // print(tokyoMunicipalList.length);
-                                                // print(tokyoMunicipalMap.length);
-                                                //
-                                                //
-                                                //
-                                                //
-                                                //
-
                                                 // ignore: prefer_final_locals
                                                 List<KotlinRoomData>? list = <KotlinRoomData>[];
 
@@ -775,17 +782,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                         onPressed: (geolocStateMap[generateYmd] == null)
                                             ? null
                                             : () {
-                                                // print(tokyoMunicipalList.length);
-                                                // print(tokyoMunicipalMap.length);
-                                                //
-                                                //
-                                                //
-                                                //
-                                                //
-                                                //
-                                                //
-                                                //
-
                                                 appParamNotifier.setIsMarkerShow(flag: true);
 
                                                 appParamNotifier.setMapType(type: MapType.daily);
@@ -794,9 +790,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                                   context: context,
                                                   widget: GeolocMapAlert(
                                                     displayMonthMap: false,
-
-                                                    ///
-
                                                     date: DateTime.parse('$generateYmd 00:00:00'),
                                                     geolocStateList: geolocStateMap[generateYmd] ?? <GeolocModel>[],
                                                     walkRecord: walkRecordMap[generateYmd] ??
@@ -837,14 +830,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
   void _goPrevMonth() => Navigator.pushReplacement(
         context,
         // ignore: inference_failure_on_instance_creation, always_specify_types
-        MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: calendarState.prevYearMonth)),
+        MaterialPageRoute(
+          builder: (BuildContext context) => HomeScreen(
+            baseYm: calendarState.prevYearMonth,
+            tokyoMunicipalList: widget.tokyoMunicipalList,
+            tokyoMunicipalMap: widget.tokyoMunicipalMap,
+          ),
+        ),
       );
 
   ///
   void _goNextMonth() => Navigator.pushReplacement(
         context,
         // ignore: inference_failure_on_instance_creation, always_specify_types
-        MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: calendarState.nextYearMonth)),
+        MaterialPageRoute(
+          builder: (BuildContext context) => HomeScreen(
+            baseYm: calendarState.nextYearMonth,
+            tokyoMunicipalList: widget.tokyoMunicipalList,
+            tokyoMunicipalMap: widget.tokyoMunicipalMap,
+          ),
+        ),
       );
 
   ///

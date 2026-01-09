@@ -72,7 +72,13 @@ class _HistoryGeolocListAlertState extends ConsumerState<HistoryGeolocListAlert>
                       Navigator.pushReplacement(
                         context,
                         // ignore: inference_failure_on_instance_creation, always_specify_types
-                        MaterialPageRoute(builder: (BuildContext context) => HomeScreen(baseYm: date.yyyymm)),
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => HomeScreen(
+                            baseYm: date.yyyymm,
+                            tokyoMunicipalList: appParamState.keepTokyoMunicipalList,
+                            tokyoMunicipalMap: appParamState.keepTokyoMunicipalMap,
+                          ),
+                        ),
                       );
                     },
                     child: CircleAvatar(

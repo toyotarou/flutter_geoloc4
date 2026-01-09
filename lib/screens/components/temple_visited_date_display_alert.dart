@@ -85,15 +85,11 @@ class _TempleVisitedDateDisplayAlertState extends ConsumerState<TempleVisitedDat
                                 context: context,
                                 widget: GeolocMapAlert(
                                   displayMonthMap: false,
-
-                                  ///
-
                                   date: DateTime.parse('$date 00:00:00'),
                                   geolocStateList: geolocState.allGeolocMap[date] ?? <GeolocModel>[],
                                   walkRecord: walkRecordState.walkRecordMap[date] ??
                                       WalkRecordModel(id: 0, year: '', month: '', day: '', step: 0, distance: 0),
                                   templeInfoList: templeState.templeInfoMap[date],
-
                                   polylineModeAsTempleVisitedDate: true,
                                 ),
                                 executeFunctionWhenDialogClose: true,

@@ -90,7 +90,10 @@ class HomeScreen extends ConsumerStatefulWidget {
   // ignore: unreachable_from_main
   String? baseYm;
 
+  // ignore: unreachable_from_main
   final List<MunicipalModel> tokyoMunicipalList;
+
+  // ignore: unreachable_from_main
   final Map<String, MunicipalModel> tokyoMunicipalMap;
 
   @override
@@ -729,6 +732,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                         onPressed: (geolocMap[generateYmd] == null)
                                             ? null
                                             : () async {
+                                                //================================================
                                                 // ignore: prefer_final_locals
                                                 List<KotlinRoomData>? list = <KotlinRoomData>[];
 
@@ -741,6 +745,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                                         },
                                                       ),
                                                     );
+
+                                                //================================================
+
+                                                //////
 
                                                 GeolocDialog(
                                                   // ignore: use_build_context_synchronously
@@ -786,17 +794,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
                                                 appParamNotifier.setMapType(type: MapType.daily);
 
+                                                List<String> templeGeolocNearlyDateList = <String>[];
+                                                if (templeState.templeInfoMap.isNotEmpty) {
+                                                  templeGeolocNearlyDateList = utility.getTempleGeolocNearlyDateList(
+                                                    date: generateYmd,
+                                                    templeInfoMap: templeState.templeInfoMap,
+                                                  );
+                                                }
+
                                                 GeolocDialog(
                                                   context: context,
                                                   widget: GeolocMapAlert(
-                                                    displayMonthMap: false,
-                                                    date: DateTime.parse('$generateYmd 00:00:00'),
-                                                    geolocStateList: geolocStateMap[generateYmd] ?? <GeolocModel>[],
-                                                    walkRecord: walkRecordMap[generateYmd] ??
-                                                        WalkRecordModel(
-                                                            id: 0, year: '', month: '', day: '', step: 0, distance: 0),
-                                                    templeInfoList: templeInfoMap[generateYmd],
-                                                  ),
+                                                      displayMonthMap: false,
+                                                      date: DateTime.parse('$generateYmd 00:00:00'),
+                                                      geolocStateList: geolocStateMap[generateYmd] ?? <GeolocModel>[],
+                                                      walkRecord: walkRecordMap[generateYmd] ??
+                                                          WalkRecordModel(
+                                                              id: 0,
+                                                              year: '',
+                                                              month: '',
+                                                              day: '',
+                                                              step: 0,
+                                                              distance: 0),
+                                                      templeInfoList: templeInfoMap[generateYmd],
+                                                      templeGeolocNearlyDateList: templeGeolocNearlyDateList),
                                                   executeFunctionWhenDialogClose: true,
                                                   ref: ref,
                                                   from: 'HomeScreen',

@@ -5,6 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../extensions/extensions.dart';
+import '../models/temple_latlng_model.dart';
+
 class Utility {
   /// 背景取得
   // ignore: always_specify_types
@@ -103,6 +106,42 @@ class Utility {
       const Color(0xFFBDBDBD), // グレー
       const Color(0xFFE0E0E0), // ライトグレー
     ];
+  }
+
+  ///
+  List<String> getTempleGeolocNearlyDateList(
+      {required String date, required Map<String, List<TempleInfoModel>> templeInfoMap}) {
+    final Set<String> templeGeolocNearlyDateSet = <String>{};
+
+    if (templeInfoMap[date] != null) {
+      for (final TempleInfoModel element in templeInfoMap[date]!) {
+        final LatLng baseLatLng = LatLng(element.latitude.toDouble(), element.longitude.toDouble());
+
+        templeInfoMap.forEach((String key, List<TempleInfoModel> value) {
+          if (value.length > 1) {
+            for (final TempleInfoModel element2 in value) {
+              if (double.tryParse(element2.latitude) != null && double.tryParse(element2.longitude) != null) {
+                final LatLng targetLatLng = LatLng(element2.latitude.toDouble(), element2.longitude.toDouble());
+
+                final double dist = calculateDistance(baseLatLng, targetLatLng);
+
+                if (dist < 100.0) {
+                  if (key != date) {
+                    templeGeolocNearlyDateSet.add(key);
+
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    final List<String> list = templeGeolocNearlyDateSet.toList()..sort();
+
+    return list;
   }
 }
 

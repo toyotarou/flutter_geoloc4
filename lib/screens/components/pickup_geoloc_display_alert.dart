@@ -4,11 +4,9 @@ import 'package:latlong2/latlong.dart';
 
 import '../../collections/geoloc.dart';
 import '../../controllers/controllers_mixin.dart';
-import '../../controllers/tokyo_municipal/tokyo_municipal.dart';
 import '../../enums/map_type.dart';
 import '../../extensions/extensions.dart';
 import '../../models/geoloc_model.dart';
-import '../../models/municipal_model.dart';
 import '../../models/temple_latlng_model.dart';
 import '../../models/walk_record_model.dart';
 import '../../utilities/utilities.dart';
@@ -79,6 +77,14 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
 
                                 appParamNotifier.setMapType(type: MapType.daily);
 
+                                List<String> templeGeolocNearlyDateList = <String>[];
+                                if (templeState.templeInfoMap.isNotEmpty) {
+                                  templeGeolocNearlyDateList = utility.getTempleGeolocNearlyDateList(
+                                    date: widget.date.yyyymmdd,
+                                    templeInfoMap: templeState.templeInfoMap,
+                                  );
+                                }
+
                                 GeolocDialog(
                                   context: context,
                                   widget: GeolocMapAlert(
@@ -88,6 +94,7 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
                                     displayTempMap: true,
                                     walkRecord: widget.walkRecord,
                                     templeInfoList: widget.templeInfoMap,
+                                    templeGeolocNearlyDateList: templeGeolocNearlyDateList,
                                   ),
                                   executeFunctionWhenDialogClose: true,
                                   ref: ref,

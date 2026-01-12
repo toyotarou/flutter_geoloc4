@@ -36,14 +36,14 @@ class TempleController extends _$TempleController {
 
     // ignore: always_specify_types
     await client.get(path: 'temple').then((templeValue) async {
-      final List<TempleInfoModel> list = <TempleInfoModel>[];
-      final Map<String, List<TempleInfoModel>> map = <String, List<TempleInfoModel>>{};
+      final List<TempleInfoModel> templeInfoList = <TempleInfoModel>[];
+      final Map<String, List<TempleInfoModel>> templeInfoMap = <String, List<TempleInfoModel>>{};
 
-      final Map<String, List<String>> map2 = <String, List<String>>{};
+      final Map<String, List<String>> templeVisitedDateMap = <String, List<String>>{};
 
-      final Map<String, List<String>> map3 = <String, List<String>>{};
+      final Map<String, List<String>> yearVisitedDateMap = <String, List<String>>{};
 
-      final List<List<String>> list2 = <List<String>>[];
+      final List<List<String>> templeSearchValueList = <List<String>>[];
 
       //===============================================================================//
 
@@ -53,15 +53,11 @@ class TempleController extends _$TempleController {
       await client.get(path: 'temple/latlng').then((templeLatLngValue) {
         // ignore: avoid_dynamic_calls
         for (int i = 0; i < templeLatLngValue.length.toString().toInt(); i++) {
-          final TempleLatlngModel templeLatLngModelValueData =
-              // ignore: avoid_dynamic_calls
-              TempleLatlngModel.fromJson(templeLatLngValue[i] as Map<String, dynamic>);
+          // ignore: avoid_dynamic_calls
+          final TempleLatlngModel val3 = TempleLatlngModel.fromJson(templeLatLngValue[i] as Map<String, dynamic>);
 
-          latlngModel[templeLatLngModelValueData.temple] = TempleInfoModel(
-              temple: templeLatLngModelValueData.temple,
-              address: templeLatLngModelValueData.address,
-              latitude: templeLatLngModelValueData.lat,
-              longitude: templeLatLngModelValueData.lng);
+          latlngModel[val3.temple] =
+              TempleInfoModel(temple: val3.temple, address: val3.address, latitude: val3.lat, longitude: val3.lng);
         }
         // ignore: always_specify_types
       }).catchError((error, _) {
@@ -73,17 +69,16 @@ class TempleController extends _$TempleController {
       // ignore: avoid_dynamic_calls
       for (int i = 0; i < templeValue.length.toString().toInt(); i++) {
         // ignore: avoid_dynamic_calls
-        final TempleModel templeModelValueData = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
+        final TempleModel val = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
 
-        map['${templeModelValueData.year}-${templeModelValueData.month}-${templeModelValueData.day}'] =
-            <TempleInfoModel>[];
+        templeInfoMap['${val.year}-${val.month}-${val.day}'] = <TempleInfoModel>[];
 
-        map3[templeModelValueData.year] = <String>[];
+        yearVisitedDateMap[val.year] = <String>[];
 
         ////////////////////////////////////////////
-        map2[templeModelValueData.temple] = <String>[];
+        templeVisitedDateMap[val.temple] = <String>[];
 
-        templeModelValueData.memo?.split('、').forEach((String element) => map2[element] = <String>[]);
+        val.memo?.split('、').forEach((String element) => templeVisitedDateMap[element] = <String>[]);
 
         ////////////////////////////////////////////
       }
@@ -91,18 +86,19 @@ class TempleController extends _$TempleController {
       // ignore: avoid_dynamic_calls
       for (int i = 0; i < templeValue.length.toString().toInt(); i++) {
         // ignore: avoid_dynamic_calls
-        final TempleModel templeModelValueData2 = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
+        final TempleModel val2 = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
+
+        final String date = '${val2.year}-${val2.month}-${val2.day}';
 
         /// templeとmemoを分割した神社名をリストに入れる
-        final List<String> templeName = <String>[templeModelValueData2.temple];
-        templeModelValueData2.memo?.split('、').forEach((String element) => templeName.add(element));
+        final List<String> templeName = <String>[val2.temple];
+        val2.memo?.split('、').forEach((String element) => templeName.add(element));
 
-        list2.add(templeName);
+        templeSearchValueList.add(templeName);
 
         ///
 
-        map2[templeModelValueData2.temple]
-            ?.add('${templeModelValueData2.year}-${templeModelValueData2.month}-${templeModelValueData2.day}');
+        templeVisitedDateMap[val2.temple]?.add(date);
 
         //___________________________________________________________
         for (final String element2 in templeName) {
@@ -116,28 +112,25 @@ class TempleController extends _$TempleController {
                 latitude: templeInfoModelValueData.latitude,
                 longitude: templeInfoModelValueData.longitude);
 
-            list.add(templeInfoModel);
+            templeInfoList.add(templeInfoModel);
 
-            map['${templeModelValueData2.year}-${templeModelValueData2.month}-${templeModelValueData2.day}']
-                ?.add(templeInfoModel);
+            templeInfoMap[date]?.add(templeInfoModel);
           }
           //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-          map2[element2]
-              ?.add('${templeModelValueData2.year}-${templeModelValueData2.month}-${templeModelValueData2.day}');
+          templeVisitedDateMap[element2]?.add(date);
         }
         //___________________________________________________________
 
-        map3[templeModelValueData2.year]
-            ?.add('${templeModelValueData2.year}-${templeModelValueData2.month}-${templeModelValueData2.day}');
+        yearVisitedDateMap[val2.year]?.add(date);
       }
 
       state = state.copyWith(
-        templeInfoList: list,
-        templeInfoMap: map,
-        templeVisitedDateMap: map2,
-        yearVisitedDateMap: map3,
-        templeSearchValueList: list2,
+        templeInfoList: templeInfoList,
+        templeInfoMap: templeInfoMap,
+        templeVisitedDateMap: templeVisitedDateMap,
+        yearVisitedDateMap: yearVisitedDateMap,
+        templeSearchValueList: templeSearchValueList,
       );
       // ignore: always_specify_types
     }).catchError((error, _) {

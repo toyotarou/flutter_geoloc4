@@ -35,6 +35,7 @@ class GeolocMapAlert extends ConsumerStatefulWidget {
     required this.date,
     this.polylineModeAsTempleVisitedDate,
     this.monthDaysFirstDateTempleExists,
+    this.templeGeolocNearlyDateList,
   });
 
   final DateTime date;
@@ -45,6 +46,7 @@ class GeolocMapAlert extends ConsumerStatefulWidget {
   final List<TempleInfoModel>? templeInfoList;
   final bool? polylineModeAsTempleVisitedDate;
   final bool? monthDaysFirstDateTempleExists;
+  final List<String>? templeGeolocNearlyDateList;
 
   @override
   ConsumerState<GeolocMapAlert> createState() => _GeolocMapAlertState();

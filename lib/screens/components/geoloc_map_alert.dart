@@ -117,6 +117,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
   List<Color> fortyEightColor = <Color>[];
 
+  List<Marker> displayGhostGeolocDateList = <Marker>[];
+
   ///
   @override
   void initState() {
@@ -231,6 +233,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
     fortyEightColor = utility.getFortyEightColor();
 
+    makeDisplayGhostGeolocDateMarker();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -343,6 +347,15 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                         borderStrokeWidth: 2),
                   ],
                 ),
+              ],
+
+              if (widget.templeGeolocNearlyDateList != null &&
+                  widget.templeGeolocNearlyDateList!.isNotEmpty &&
+                  appParamState.isDisplayGhostGeolocPolyline) ...<Widget>[
+                // ignore: always_specify_types
+                PolylineLayer(polylines: makeGhostGeolocPolyline()),
+
+                MarkerLayer(markers: displayGhostGeolocDateList),
               ],
             ],
           ),
@@ -473,6 +486,35 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                               ],
                             ),
                           ),
+                          if (widget.templeGeolocNearlyDateList != null &&
+                              widget.templeGeolocNearlyDateList!.isNotEmpty) ...<Widget>[
+                            const SizedBox(width: 20),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: (appParamState.isDisplayGhostGeolocPolyline)
+                                    ? Colors.yellowAccent.withOpacity(0.3)
+                                    : Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  appParamNotifier.setIsDisplayGhostGeolocPolyline(
+                                    flag: !appParamState.isDisplayGhostGeolocPolyline,
+                                  );
+                                },
+                                child: const Stack(
+                                  children: <Widget>[
+                                    Positioned(
+                                      bottom: 0,
+                                      child: Text('ghost', style: TextStyle(color: Colors.yellowAccent, fontSize: 8)),
+                                    ),
+                                    Icon(Icons.stacked_line_chart),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                           if (appParamState.mapType == MapType.daily ||
                               appParamState.mapType == MapType.monthDays) ...<Widget>[
                             const SizedBox(width: 20),
@@ -1233,5 +1275,69 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         ),
       ),
     );
+  }
+
+  ///
+  // ignore: always_specify_types
+  List<Polyline> makeGhostGeolocPolyline() {
+    // ignore: always_specify_types
+    final List<Polyline> polylines = <Polyline>[];
+
+    for (int i = 0; i < widget.templeGeolocNearlyDateList!.length; i++) {
+      if (templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]] != null) {
+        // ignore: always_specify_types
+        polylines.add(Polyline(
+          points: templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]]!
+              .map((TempleInfoModel t) => LatLng(t.latitude.toDouble(), t.longitude.toDouble()))
+              .toList(),
+          color: fortyEightColor[i % 48].withValues(alpha: 0.5),
+          strokeWidth: 20,
+        ));
+      }
+    }
+
+    return polylines;
+  }
+
+  ///
+  void makeDisplayGhostGeolocDateMarker() {
+    displayGhostGeolocDateList.clear();
+
+    for (int i = 0; i < widget.templeGeolocNearlyDateList!.length; i++) {
+      if (templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]] != null) {
+        int j = 0;
+        for (final TempleInfoModel element in templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]]!) {
+          if (j == 0) {
+            displayGhostGeolocDateList.add(
+              Marker(
+                point: LatLng(
+                  element.latitude.toDouble(),
+                  element.longitude.toDouble(),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: fortyEightColor[i % 48]),
+                  ),
+                  child: DefaultTextStyle(
+                    style: TextStyle(color: fortyEightColor[i % 48], fontSize: 8, fontWeight: FontWeight.bold),
+                    child: Column(
+                      children: <Widget>[
+                        const Spacer(),
+                        Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).year.toString()),
+                        Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).mmdd),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          j++;
+        }
+      }
+    }
   }
 }

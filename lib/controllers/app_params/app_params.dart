@@ -63,6 +63,9 @@ class AppParamsState with _$AppParamsState {
 
     ///
     @Default(<List<List<List<double>>>>[]) List<List<List<List<double>>>> keepAllPolygonsList,
+
+    ///
+    @Default(false) bool isDisplayGhostGeolocPolyline,
   }) = _AppParamsState;
 }
 
@@ -182,4 +185,8 @@ class AppParams extends _$AppParams {
   ///
   void setKeepAllPolygonsList({required List<List<List<List<double>>>> list}) =>
       state = state.copyWith(keepAllPolygonsList: list);
+
+  ///
+  void setIsDisplayGhostGeolocPolyline({required bool flag}) =>
+      state = state.copyWith(isDisplayGhostGeolocPolyline: flag);
 }

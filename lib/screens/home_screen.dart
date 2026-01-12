@@ -830,8 +830,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                                           style: const TextStyle(fontSize: 8, color: Colors.white),
                                         ),
                                       ),
-
-                                      /////
                                     ],
                                   ),
                           ),

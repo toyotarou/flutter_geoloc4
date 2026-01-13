@@ -1303,39 +1303,41 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   void makeDisplayGhostGeolocDateMarker() {
     displayGhostGeolocDateList.clear();
 
-    for (int i = 0; i < widget.templeGeolocNearlyDateList!.length; i++) {
-      if (templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]] != null) {
-        int j = 0;
-        for (final TempleInfoModel element in templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]]!) {
-          if (j == 0) {
-            displayGhostGeolocDateList.add(
-              Marker(
-                point: LatLng(
-                  element.latitude.toDouble(),
-                  element.longitude.toDouble(),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: fortyEightColor[i % 48]),
+    if (widget.templeGeolocNearlyDateList != null) {
+      for (int i = 0; i < widget.templeGeolocNearlyDateList!.length; i++) {
+        if (templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]] != null) {
+          int j = 0;
+          for (final TempleInfoModel element in templeState.templeInfoMap[widget.templeGeolocNearlyDateList![i]]!) {
+            if (j == 0) {
+              displayGhostGeolocDateList.add(
+                Marker(
+                  point: LatLng(
+                    element.latitude.toDouble(),
+                    element.longitude.toDouble(),
                   ),
-                  child: DefaultTextStyle(
-                    style: TextStyle(color: fortyEightColor[i % 48], fontSize: 8, fontWeight: FontWeight.bold),
-                    child: Column(
-                      children: <Widget>[
-                        const Spacer(),
-                        Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).year.toString()),
-                        Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).mmdd),
-                        const Spacer(),
-                      ],
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: fortyEightColor[i % 48]),
+                    ),
+                    child: DefaultTextStyle(
+                      style: TextStyle(color: fortyEightColor[i % 48], fontSize: 8, fontWeight: FontWeight.bold),
+                      child: Column(
+                        children: <Widget>[
+                          const Spacer(),
+                          Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).year.toString()),
+                          Text(DateTime.parse(widget.templeGeolocNearlyDateList![i]).mmdd),
+                          const Spacer(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          j++;
+            j++;
+          }
         }
       }
     }

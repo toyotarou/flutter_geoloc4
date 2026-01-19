@@ -119,6 +119,12 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
   List<Marker> displayGhostGeolocDateList = <Marker>[];
 
+  /// 矢印を非表示にする距離（メートル）
+  static const double arrowHideDistanceMeters = 30.0;
+
+  /// 矢印アイコンサイズ
+  static const double arrowIconSize = 24.0;
+
   ///
   @override
   void initState() {
@@ -1033,56 +1039,158 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
     }
   }
 
-  ///
   void makeMarker() {
     markerList = <Marker>[];
 
-    for (final GeolocModel element in gStateList) {
-      final bool isRed = emphasisMarkers.contains(LatLng(element.latitude.toDouble(), element.longitude.toDouble()));
+    for (int i = 0; i < gStateList.length; i++) {
+      final GeolocModel element = gStateList[i];
 
-      final int? badgeIndex = emphasisMarkersIndices[LatLng(element.latitude.toDouble(), element.longitude.toDouble())];
+      final LatLng currentPos = LatLng(element.latitude.toDouble(), element.longitude.toDouble());
+
+      double? bearingDeg;
+      bool showArrow = false;
+
+      if (i >= 1) {
+        final GeolocModel prev = gStateList[i - 1];
+        final LatLng prevPos = LatLng(prev.latitude.toDouble(), prev.longitude.toDouble());
+
+        /// 距離（m）を計算（既存Utilityを使用）
+        final double dist = utility.calculateDistance(prevPos, currentPos);
+
+        /// 密集していなければ矢印を出す
+        if (dist >= arrowHideDistanceMeters) {
+          bearingDeg = _bearingDegrees(from: prevPos, to: currentPos);
+          showArrow = true;
+        }
+      }
+
+      final bool isRed = emphasisMarkers.contains(currentPos);
+      final int? badgeIndex = emphasisMarkersIndices[currentPos];
 
       markerList.add(
         Marker(
-          point: LatLng(element.latitude.toDouble(), element.longitude.toDouble()),
+          point: currentPos,
           width: 40,
           height: 40,
-          // ignore: use_if_null_to_convert_nulls_to_bools
-          child: (appParamState.mapType == MapType.monthly)
-              ? const Icon(Icons.ac_unit, size: 20, color: Colors.redAccent)
-              : Stack(
+          child: Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              CircleAvatar(
+                backgroundColor: isRed
+                    ? Colors.redAccent.withOpacity(0.5)
+                    : (appParamState.selectedTimeGeoloc != null &&
+                            appParamState.selectedTimeGeoloc!.time == element.time)
+                        ? Colors.redAccent.withOpacity(0.5)
+                        // ignore: use_if_null_to_convert_nulls_to_bools
+                        : (widget.displayTempMap == true)
+                            ? Colors.orangeAccent.withOpacity(0.5)
+                            : Colors.green[900]?.withOpacity(0.5),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: <Widget>[
-                    CircleAvatar(
-                      // ignore: use_if_null_to_convert_nulls_to_bools
-                      backgroundColor: isRed
-                          ? Colors.redAccent.withOpacity(0.5)
-                          : (appParamState.selectedTimeGeoloc != null &&
-                                  appParamState.selectedTimeGeoloc!.time == element.time)
-                              ? Colors.redAccent.withOpacity(0.5)
-
-                              // ignore: use_if_null_to_convert_nulls_to_bools
-                              : (widget.displayTempMap == true)
-                                  ? Colors.orangeAccent.withOpacity(0.5)
-                                  : Colors.green[900]?.withOpacity(0.5),
-                      child: Text(element.time, style: const TextStyle(color: Colors.white, fontSize: 10)),
-                    ),
-                    if (badgeIndex != null)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                          child: Text(badgeIndex.toString(), style: const TextStyle(fontSize: 10, color: Colors.black)),
+                    /// ==========================
+                    /// 移動方向矢印（大きめ）
+                    /// ==========================
+                    if (showArrow && bearingDeg != null)
+                      Transform.rotate(
+                        angle: bearingDeg * pi / 180.0,
+                        child: const Icon(
+                          Icons.navigation,
+                          size: arrowIconSize,
+                          color: Colors.white,
                         ),
                       ),
+
+                    /// ==========================
+                    /// 時刻テキスト（影付き）
+                    /// ==========================
+                    Text(
+                      '${element.time.split(':')[0]}:${element.time.split(':')[1]}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        shadows: <Shadow>[
+                          Shadow(
+                            blurRadius: 4,
+                          ),
+                          Shadow(
+                            offset: Offset(1, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
+              ),
+              if (badgeIndex != null)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      badgeIndex.toString(),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     }
+  }
+
+  ///
+  /// 「from から to に向かうとき、どっちの向きに進むか」を
+  /// 角度（0〜360度）で返す関数。
+  ///
+  /// 角度のルール：
+  ///  0°   = 上（北）
+  ///  90°  = 右（東）
+  ///  180° = 下（南）
+  ///  270° = 左（西）
+  ///
+  /// この角度を使って、矢印アイコンを回転させている。
+  ///
+  double _bearingDegrees({required LatLng from, required LatLng to}) {
+    // --- ① 度 → ラジアンに変換 ---
+    // 三角関数（sin, cos）はラジアンしか使えないため
+    final double fromLatRad = from.latitude * pi / 180.0;
+    final double fromLonRad = from.longitude * pi / 180.0;
+    final double toLatRad = to.latitude * pi / 180.0;
+    final double toLonRad = to.longitude * pi / 180.0;
+
+    // --- ② 横方向（右・左）にどれだけズレたか ---
+    final double deltaLonRad = toLonRad - fromLonRad;
+
+    // --- ③ 向きを計算するための材料を作る ---
+    // y : 左右っぽさ
+    final double y = sin(deltaLonRad) * cos(toLatRad);
+
+    // x : 上下っぽさ
+    final double x = cos(fromLatRad) * sin(toLatRad) - sin(fromLatRad) * cos(toLatRad) * cos(deltaLonRad);
+
+    // --- ④ x と y から角度を求める（ラジアン） ---
+    final double bearingRad = atan2(y, x);
+
+    // --- ⑤ ラジアン → 度に変換 ---
+    double bearingDeg = bearingRad * 180.0 / pi;
+
+    // --- ⑥ 0〜360° にそろえる ---
+    bearingDeg = (bearingDeg + 360.0) % 360.0;
+
+    return bearingDeg;
   }
 
   ///

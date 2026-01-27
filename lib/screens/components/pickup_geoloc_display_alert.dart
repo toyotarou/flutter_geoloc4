@@ -85,6 +85,8 @@ class _PickupGeolocDisplayAlertState extends ConsumerState<PickupGeolocDisplayAl
                                   );
                                 }
 
+                                appParamNotifier.setSelectedRadiusKm(radius: 0);
+
                                 GeolocDialog(
                                   context: context,
                                   widget: GeolocMapAlert(

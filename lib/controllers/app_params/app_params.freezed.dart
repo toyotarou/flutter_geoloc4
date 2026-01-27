@@ -69,9 +69,6 @@ mixin _$AppParamsState {
   ///
   bool get isDisplayGhostGeolocPolyline => throw _privateConstructorUsedError;
 
-  ///
-  int get selectedRadiusKm => throw _privateConstructorUsedError;
-
   @JsonKey(ignore: true)
   $AppParamsStateCopyWith<AppParamsState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -110,8 +107,7 @@ abstract class $AppParamsStateCopyWith<$Res> {
       List<MunicipalModel> keepTokyoMunicipalList,
       Map<String, MunicipalModel> keepTokyoMunicipalMap,
       List<List<List<List<double>>>> keepAllPolygonsList,
-      bool isDisplayGhostGeolocPolyline,
-      int selectedRadiusKm});
+      bool isDisplayGhostGeolocPolyline});
 }
 
 /// @nodoc
@@ -154,7 +150,6 @@ class _$AppParamsStateCopyWithImpl<$Res, $Val extends AppParamsState>
     Object? keepTokyoMunicipalMap = null,
     Object? keepAllPolygonsList = null,
     Object? isDisplayGhostGeolocPolyline = null,
-    Object? selectedRadiusKm = null,
   }) {
     return _then(_value.copyWith(
       calendarSelectedDate: freezed == calendarSelectedDate
@@ -267,10 +262,6 @@ class _$AppParamsStateCopyWithImpl<$Res, $Val extends AppParamsState>
           ? _value.isDisplayGhostGeolocPolyline
           : isDisplayGhostGeolocPolyline // ignore: cast_nullable_to_non_nullable
               as bool,
-      selectedRadiusKm: null == selectedRadiusKm
-          ? _value.selectedRadiusKm
-          : selectedRadiusKm // ignore: cast_nullable_to_non_nullable
-              as int,
     ) as $Val);
   }
 }
@@ -310,8 +301,7 @@ abstract class _$$AppParamsStateImplCopyWith<$Res>
       List<MunicipalModel> keepTokyoMunicipalList,
       Map<String, MunicipalModel> keepTokyoMunicipalMap,
       List<List<List<List<double>>>> keepAllPolygonsList,
-      bool isDisplayGhostGeolocPolyline,
-      int selectedRadiusKm});
+      bool isDisplayGhostGeolocPolyline});
 }
 
 /// @nodoc
@@ -352,7 +342,6 @@ class __$$AppParamsStateImplCopyWithImpl<$Res>
     Object? keepTokyoMunicipalMap = null,
     Object? keepAllPolygonsList = null,
     Object? isDisplayGhostGeolocPolyline = null,
-    Object? selectedRadiusKm = null,
   }) {
     return _then(_$AppParamsStateImpl(
       calendarSelectedDate: freezed == calendarSelectedDate
@@ -465,10 +454,6 @@ class __$$AppParamsStateImplCopyWithImpl<$Res>
           ? _value.isDisplayGhostGeolocPolyline
           : isDisplayGhostGeolocPolyline // ignore: cast_nullable_to_non_nullable
               as bool,
-      selectedRadiusKm: null == selectedRadiusKm
-          ? _value.selectedRadiusKm
-          : selectedRadiusKm // ignore: cast_nullable_to_non_nullable
-              as int,
     ));
   }
 }
@@ -507,8 +492,7 @@ class _$AppParamsStateImpl implements _AppParamsState {
           const <String, MunicipalModel>{},
       final List<List<List<List<double>>>> keepAllPolygonsList =
           const <List<List<List<double>>>>[],
-      this.isDisplayGhostGeolocPolyline = false,
-      this.selectedRadiusKm = 0})
+      this.isDisplayGhostGeolocPolyline = false})
       : _bigEntries = bigEntries,
         _monthGeolocAddMonthButtonLabelList =
             monthGeolocAddMonthButtonLabelList,
@@ -680,14 +664,9 @@ class _$AppParamsStateImpl implements _AppParamsState {
   @JsonKey()
   final bool isDisplayGhostGeolocPolyline;
 
-  ///
-  @override
-  @JsonKey()
-  final int selectedRadiusKm;
-
   @override
   String toString() {
-    return 'AppParamsState(calendarSelectedDate: $calendarSelectedDate, selectedTimeGeoloc: $selectedTimeGeoloc, isMarkerShow: $isMarkerShow, currentZoom: $currentZoom, currentPaddingIndex: $currentPaddingIndex, currentCenter: $currentCenter, isTempleCircleShow: $isTempleCircleShow, polylineGeolocModel: $polylineGeolocModel, selectedTemple: $selectedTemple, timeGeolocDisplayStart: $timeGeolocDisplayStart, timeGeolocDisplayEnd: $timeGeolocDisplayEnd, bigEntries: $bigEntries, setStateCallback: $setStateCallback, monthGeolocAddMonthButtonLabelList: $monthGeolocAddMonthButtonLabelList, overlayPosition: $overlayPosition, firstEntries: $firstEntries, secondEntries: $secondEntries, visitedTempleMapDisplayFinish: $visitedTempleMapDisplayFinish, selectedTimeGeolocIndex: $selectedTimeGeolocIndex, mapType: $mapType, mapControlDisplayDate: $mapControlDisplayDate, selectedGeolocListForDelete: $selectedGeolocListForDelete, selectedKotlinRoomDataListForDelete: $selectedKotlinRoomDataListForDelete, keepTokyoMunicipalList: $keepTokyoMunicipalList, keepTokyoMunicipalMap: $keepTokyoMunicipalMap, keepAllPolygonsList: $keepAllPolygonsList, isDisplayGhostGeolocPolyline: $isDisplayGhostGeolocPolyline, selectedRadiusKm: $selectedRadiusKm)';
+    return 'AppParamsState(calendarSelectedDate: $calendarSelectedDate, selectedTimeGeoloc: $selectedTimeGeoloc, isMarkerShow: $isMarkerShow, currentZoom: $currentZoom, currentPaddingIndex: $currentPaddingIndex, currentCenter: $currentCenter, isTempleCircleShow: $isTempleCircleShow, polylineGeolocModel: $polylineGeolocModel, selectedTemple: $selectedTemple, timeGeolocDisplayStart: $timeGeolocDisplayStart, timeGeolocDisplayEnd: $timeGeolocDisplayEnd, bigEntries: $bigEntries, setStateCallback: $setStateCallback, monthGeolocAddMonthButtonLabelList: $monthGeolocAddMonthButtonLabelList, overlayPosition: $overlayPosition, firstEntries: $firstEntries, secondEntries: $secondEntries, visitedTempleMapDisplayFinish: $visitedTempleMapDisplayFinish, selectedTimeGeolocIndex: $selectedTimeGeolocIndex, mapType: $mapType, mapControlDisplayDate: $mapControlDisplayDate, selectedGeolocListForDelete: $selectedGeolocListForDelete, selectedKotlinRoomDataListForDelete: $selectedKotlinRoomDataListForDelete, keepTokyoMunicipalList: $keepTokyoMunicipalList, keepTokyoMunicipalMap: $keepTokyoMunicipalMap, keepAllPolygonsList: $keepAllPolygonsList, isDisplayGhostGeolocPolyline: $isDisplayGhostGeolocPolyline)';
   }
 
   @override
@@ -734,8 +713,7 @@ class _$AppParamsStateImpl implements _AppParamsState {
                     visitedTempleMapDisplayFinish) ||
                 other.visitedTempleMapDisplayFinish ==
                     visitedTempleMapDisplayFinish) &&
-            (identical(
-                    other.selectedTimeGeolocIndex, selectedTimeGeolocIndex) ||
+            (identical(other.selectedTimeGeolocIndex, selectedTimeGeolocIndex) ||
                 other.selectedTimeGeolocIndex == selectedTimeGeolocIndex) &&
             (identical(other.mapType, mapType) || other.mapType == mapType) &&
             (identical(other.mapControlDisplayDate, mapControlDisplayDate) ||
@@ -752,11 +730,10 @@ class _$AppParamsStateImpl implements _AppParamsState {
                 .equals(other._keepTokyoMunicipalMap, _keepTokyoMunicipalMap) &&
             const DeepCollectionEquality()
                 .equals(other._keepAllPolygonsList, _keepAllPolygonsList) &&
-            (identical(other.isDisplayGhostGeolocPolyline, isDisplayGhostGeolocPolyline) ||
+            (identical(other.isDisplayGhostGeolocPolyline,
+                    isDisplayGhostGeolocPolyline) ||
                 other.isDisplayGhostGeolocPolyline ==
-                    isDisplayGhostGeolocPolyline) &&
-            (identical(other.selectedRadiusKm, selectedRadiusKm) ||
-                other.selectedRadiusKm == selectedRadiusKm));
+                    isDisplayGhostGeolocPolyline));
   }
 
   @override
@@ -790,8 +767,7 @@ class _$AppParamsStateImpl implements _AppParamsState {
         const DeepCollectionEquality().hash(_keepTokyoMunicipalList),
         const DeepCollectionEquality().hash(_keepTokyoMunicipalMap),
         const DeepCollectionEquality().hash(_keepAllPolygonsList),
-        isDisplayGhostGeolocPolyline,
-        selectedRadiusKm
+        isDisplayGhostGeolocPolyline
       ]);
 
   @JsonKey(ignore: true)
@@ -830,8 +806,7 @@ abstract class _AppParamsState implements AppParamsState {
       final List<MunicipalModel> keepTokyoMunicipalList,
       final Map<String, MunicipalModel> keepTokyoMunicipalMap,
       final List<List<List<List<double>>>> keepAllPolygonsList,
-      final bool isDisplayGhostGeolocPolyline,
-      final int selectedRadiusKm}) = _$AppParamsStateImpl;
+      final bool isDisplayGhostGeolocPolyline}) = _$AppParamsStateImpl;
 
   @override
   DateTime? get calendarSelectedDate;
@@ -905,10 +880,6 @@ abstract class _AppParamsState implements AppParamsState {
 
   ///
   bool get isDisplayGhostGeolocPolyline;
-  @override
-
-  ///
-  int get selectedRadiusKm;
   @override
   @JsonKey(ignore: true)
   _$$AppParamsStateImplCopyWith<_$AppParamsStateImpl> get copyWith =>

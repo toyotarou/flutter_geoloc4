@@ -66,6 +66,9 @@ class AppParamsState with _$AppParamsState {
 
     ///
     @Default(false) bool isDisplayGhostGeolocPolyline,
+
+    ///
+    @Default(0) int selectedRadiusKm,
   }) = _AppParamsState;
 }
 
@@ -189,4 +192,7 @@ class AppParams extends _$AppParams {
   ///
   void setIsDisplayGhostGeolocPolyline({required bool flag}) =>
       state = state.copyWith(isDisplayGhostGeolocPolyline: flag);
+
+  ///
+  void setSelectedRadiusKm({required int radius}) => state = state.copyWith(selectedRadiusKm: radius);
 }

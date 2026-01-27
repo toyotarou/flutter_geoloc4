@@ -184,8 +184,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
   GeolocModel? geolocStateListFirstRecord;
 
-  late LatLng _fixedCenter;
-
   ///
   @override
   Widget build(BuildContext context) {
@@ -222,15 +220,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         }
       }
 
-      gStateList
-        ..sort((GeolocModel a, GeolocModel b) =>
-            '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}'))
-        ..sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
-
-      if (widget.displayTempMap ?? false) {
-        _fixedCenter = LatLng(gStateList.last.latitude.toDouble(), gStateList.last.longitude.toDouble());
-      }
-
       firstDisplayFinished = true;
     }
 
@@ -254,194 +243,167 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-        final Size mapSize = Size(constraints.maxWidth, constraints.maxHeight);
-
-        final List<LatLng> circlePoints = (appParamState.selectedRadiusKm == 0)
-            ? <LatLng>[]
-            : buildCirclePolygonPoints(
-                center: _fixedCenter,
-                radiusMeters: appParamState.selectedRadiusKm * 1000,
-                sides: 90,
-              );
-
-        return Stack(
-          children: <Widget>[
-            FlutterMap(
-              mapController: mapController,
-              options: MapOptions(
-                initialCenter: (gStateList.isNotEmpty)
-                    ? LatLng(gStateList[0].latitude.toDouble(), gStateList[0].longitude.toDouble())
-                    : const LatLng(35.718532, 139.586639),
-                initialZoom: currentZoomEightTeen,
-                onPositionChanged: (MapCamera position, bool isMoving) {
-                  if (isMoving) {
-                    appParamNotifier.setCurrentZoom(zoom: position.zoom);
-                  }
-                },
-                onTap: (TapPosition tapPosition, LatLng latlng) => setState(() => tappedPoints.add(latlng)),
-              ),
-              children: <Widget>[
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  tileProvider: CachedTileProvider(),
-                  userAgentPackageName: 'com.example.app',
-                ),
-
-                if (appParamState.selectedRadiusKm != 0) ...<Widget>[
-                  // ignore: always_specify_types
-                  PolygonLayer(
-                    polygons: <Polygon<Object>>[
-                      // ignore: always_specify_types
-                      Polygon(
-                        points: circlePoints,
-                        color: Colors.blue.withOpacity(0.12),
-                        borderColor: Colors.blue.withOpacity(0.6),
-                        borderStrokeWidth: 2,
-                      ),
-                    ],
-                  ),
-                ],
-
-                if (appParamState.keepAllPolygonsList.isNotEmpty) ...<Widget>[
-                  // ignore: always_specify_types
-                  PolygonLayer(
-                    polygons: makeAreaPolygons(
-                      allPolygonsList: appParamState.keepAllPolygonsList,
-                      fortyEightColor: fortyEightColor,
-                    ),
-                  ),
-                ],
-
-                if (appParamState.isMarkerShow) ...<Widget>[MarkerLayer(markers: markerList)],
-
-                if (!appParamState.isMarkerShow) ...<Widget>[
-                  if ((appParamState.mapType == MapType.daily || appParamState.mapType == MapType.monthly) &&
-                      widget.polylineModeAsTempleVisitedDate == false) ...<Widget>[
-                    // ignore: always_specify_types
-                    PolylineLayer(
-                      polylines: <Polyline<Object>>[
-                        // ignore: always_specify_types
-                        Polyline(
-                          points: sortedWidgetGeolocStateList
-                              .map((GeolocModel e) => LatLng(e.latitude.toDouble(), e.longitude.toDouble()))
-                              .toList(),
-                          color: Colors.redAccent,
-                          strokeWidth: 5,
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-
-                // ignore: always_specify_types
-                PolylineLayer(
-                  polylines: <Polyline<Object>>[
-                    // ignore: always_specify_types
-                    Polyline(
-                      points: polylineGeolocList
-                          .map((GeolocModel e) => LatLng(e.latitude.toDouble(), e.longitude.toDouble()))
-                          .toList(),
-                      color: Colors.orangeAccent,
-                      strokeWidth: 5,
-                    ),
-                  ],
-                ),
-
-                if (appParamState.isTempleCircleShow && appParamState.currentCenter != null) ...<Widget>[
-                  // ignore: always_specify_types
-                  PolygonLayer(
-                    polygons: <Polygon<Object>>[
-                      // ignore: always_specify_types
-                      Polygon(
-                        points: calculateCirclePoints(appParamState.currentCenter!, circleRadiusMeters),
-                        color: Colors.redAccent.withOpacity(0.1),
-                        borderStrokeWidth: 2.0,
-                        borderColor: Colors.redAccent.withOpacity(0.5),
-                      ),
-                    ],
-                  ),
-                ],
-
-                if (tappedPoints.isNotEmpty) ...<Widget>[
-                  MarkerLayer(
-                    markers: tappedPoints
-                        .map(
-                          (LatLng point) => Marker(
-                            point: point,
-                            width: 40,
-                            height: 40,
-                            child: const Icon(Icons.circle, size: 20, color: Colors.purple),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-
-                if (tappedPoints.isNotEmpty) ...<Widget>[
-                  // ignore: always_specify_types
-                  PolygonLayer(
-                    polygons: <Polygon<Object>>[
-                      // ignore: always_specify_types
-                      Polygon(
-                          points: tappedPoints,
-                          color: Colors.purple.withOpacity(0.1),
-                          borderColor: Colors.purple,
-                          borderStrokeWidth: 2),
-                    ],
-                  ),
-                ],
-
-                if (widget.templeGeolocNearlyDateList != null &&
-                    widget.templeGeolocNearlyDateList!.isNotEmpty &&
-                    appParamState.isDisplayGhostGeolocPolyline) ...<Widget>[
-                  // ignore: always_specify_types
-                  PolylineLayer(polylines: makeGhostGeolocPolyline()),
-
-                  MarkerLayer(markers: displayGhostGeolocDateList),
-                ],
-              ],
+      body: Stack(
+        children: <Widget>[
+          FlutterMap(
+            mapController: mapController,
+            options: MapOptions(
+              initialCenter: (gStateList.isNotEmpty)
+                  ? LatLng(gStateList[0].latitude.toDouble(), gStateList[0].longitude.toDouble())
+                  : const LatLng(35.718532, 139.586639),
+              initialZoom: currentZoomEightTeen,
+              onPositionChanged: (MapCamera position, bool isMoving) {
+                if (isMoving) {
+                  appParamNotifier.setCurrentZoom(zoom: position.zoom);
+                }
+              },
+              onTap: (TapPosition tapPosition, LatLng latlng) => setState(() => tappedPoints.add(latlng)),
             ),
+            children: <Widget>[
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                tileProvider: CachedTileProvider(),
+                userAgentPackageName: 'com.example.app',
+              ),
 
-            ////////------------------------
+              if (appParamState.keepAllPolygonsList.isNotEmpty) ...<Widget>[
+                // ignore: always_specify_types
+                PolygonLayer(
+                  polygons: makeAreaPolygons(
+                    allPolygonsList: appParamState.keepAllPolygonsList,
+                    fortyEightColor: fortyEightColor,
+                  ),
+                ),
+              ],
 
-            displayMapStackPartsUpper(mapSize: mapSize),
+              if (appParamState.isMarkerShow) ...<Widget>[MarkerLayer(markers: markerList)],
 
-            ///////
+              if (!appParamState.isMarkerShow) ...<Widget>[
+                if ((appParamState.mapType == MapType.daily || appParamState.mapType == MapType.monthly) &&
+                    widget.polylineModeAsTempleVisitedDate == false) ...<Widget>[
+                  // ignore: always_specify_types
+                  PolylineLayer(
+                    polylines: <Polyline<Object>>[
+                      // ignore: always_specify_types
+                      Polyline(
+                        points: sortedWidgetGeolocStateList
+                            .map((GeolocModel e) => LatLng(e.latitude.toDouble(), e.longitude.toDouble()))
+                            .toList(),
+                        color: Colors.redAccent,
+                        strokeWidth: 5,
+                      ),
+                    ],
+                  ),
+                ],
+              ],
 
-            if (enclosedMarkers.isNotEmpty) ...<Widget>[displayMapStackPartsEnclosedMarkersInfo()],
+              // ignore: always_specify_types
+              PolylineLayer(
+                polylines: <Polyline<Object>>[
+                  // ignore: always_specify_types
+                  Polyline(
+                    points: polylineGeolocList
+                        .map((GeolocModel e) => LatLng(e.latitude.toDouble(), e.longitude.toDouble()))
+                        .toList(),
+                    color: Colors.orangeAccent,
+                    strokeWidth: 5,
+                  ),
+                ],
+              ),
 
-            //////
+              if (appParamState.isTempleCircleShow && appParamState.currentCenter != null) ...<Widget>[
+                // ignore: always_specify_types
+                PolygonLayer(
+                  polygons: <Polygon<Object>>[
+                    // ignore: always_specify_types
+                    Polygon(
+                      points: calculateCirclePoints(appParamState.currentCenter!, circleRadiusMeters),
+                      color: Colors.redAccent.withOpacity(0.1),
+                      borderStrokeWidth: 2.0,
+                      borderColor: Colors.redAccent.withOpacity(0.5),
+                    ),
+                  ],
+                ),
+              ],
 
-            if (appParamState.mapType == MapType.monthly) ...<Widget>[displayMapStackPartsMonthBottom()],
+              if (tappedPoints.isNotEmpty) ...<Widget>[
+                MarkerLayer(
+                  markers: tappedPoints
+                      .map(
+                        (LatLng point) => Marker(
+                          point: point,
+                          width: 40,
+                          height: 40,
+                          child: const Icon(Icons.circle, size: 20, color: Colors.purple),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
 
-            /////
+              if (tappedPoints.isNotEmpty) ...<Widget>[
+                // ignore: always_specify_types
+                PolygonLayer(
+                  polygons: <Polygon<Object>>[
+                    // ignore: always_specify_types
+                    Polygon(
+                        points: tappedPoints,
+                        color: Colors.purple.withOpacity(0.1),
+                        borderColor: Colors.purple,
+                        borderStrokeWidth: 2),
+                  ],
+                ),
+              ],
 
-            if (appParamState.mapType == MapType.daily) ...<Widget>[
-              if (appParamState.selectedTimeGeoloc != null) ...<Widget>[
-                Positioned(top: 150, child: displayMapStackPartsLatLngAddress())
+              if (widget.templeGeolocNearlyDateList != null &&
+                  widget.templeGeolocNearlyDateList!.isNotEmpty &&
+                  appParamState.isDisplayGhostGeolocPolyline) ...<Widget>[
+                // ignore: always_specify_types
+                PolylineLayer(polylines: makeGhostGeolocPolyline()),
+
+                MarkerLayer(markers: displayGhostGeolocDateList),
               ],
             ],
+          ),
 
-            /////
+          ////////------------------------
 
-            if (gStateList.isEmpty) ...<Widget>[
-              Center(child: Icon(Icons.do_not_disturb_alt, color: Colors.redAccent.withOpacity(0.3), size: 200))
+          displayMapStackPartsUpper(),
+
+          ///////
+
+          if (enclosedMarkers.isNotEmpty) ...<Widget>[displayMapStackPartsEnclosedMarkersInfo()],
+
+          //////
+
+          if (appParamState.mapType == MapType.monthly) ...<Widget>[displayMapStackPartsMonthBottom()],
+
+          /////
+
+          if (appParamState.mapType == MapType.daily) ...<Widget>[
+            if (appParamState.selectedTimeGeoloc != null) ...<Widget>[
+              Positioned(top: 150, child: displayMapStackPartsLatLngAddress())
             ],
-
-            /////
-
-            if (isLoading) ...<Widget>[const Center(child: CircularProgressIndicator())],
           ],
-        );
-      }),
+
+          /////
+
+          if (gStateList.isEmpty) ...<Widget>[
+            Center(child: Icon(Icons.do_not_disturb_alt, color: Colors.redAccent.withOpacity(0.3), size: 200))
+          ],
+
+          /////
+
+          if (isLoading) ...<Widget>[const Center(child: CircularProgressIndicator())],
+        ],
+      ),
     );
   }
 
   int recordAdjustDayNum = 0;
 
   ///
-  Widget displayMapStackPartsUpper({required Size mapSize}) {
+  Widget displayMapStackPartsUpper() {
     int monthEnd = 0;
     if (appParamState.mapType == MapType.monthDays) {
       monthEnd = DateTime(widget.date.year, widget.date.month + 1, 0).day;
@@ -756,57 +718,9 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
               //:::::::::::::::::::::::::::::::::::::::::::::::::://
             ],
           ),
-          if (widget.displayTempMap ?? false) ...<Widget>[
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const SizedBox.shrink(),
-                Row(
-                    children: <int>[2, 3, 4, 5]
-                        .map((int e) => Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 5),
-                              child: GestureDetector(
-                                onTap: () {
-                                  appParamNotifier.setSelectedRadiusKm(radius: e);
-
-                                  setRadiusZoom(mapSize, e);
-                                },
-                                child: CircleAvatar(
-                                  backgroundColor: (appParamState.selectedRadiusKm == e)
-                                      ? Colors.yellowAccent.withOpacity(0.2)
-                                      : Colors.black.withOpacity(0.2),
-                                  radius: 15,
-                                  child: Text(
-                                    e.toString(),
-                                    style: TextStyle(
-                                        fontSize: 8,
-                                        color: (appParamState.selectedRadiusKm == e) ? Colors.black : Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ))
-                        .toList())
-              ],
-            )
-          ],
         ],
       ),
     );
-  }
-
-  ///
-  void setRadiusZoom(Size mapSize, int e) {
-    final double radiusMeters = e * 1000;
-
-    final double radiusPx = min(mapSize.width, mapSize.height) / 2;
-
-    final double latRad = _fixedCenter.latitude * pi / 180;
-
-    final double numerator = 156543.03392 * cos(latRad) * radiusPx;
-    final double zoom = log(numerator / radiusMeters) / ln2;
-
-    mapController.moveAndRotate(_fixedCenter, zoom.clamp(1.0, 19.0), 0.0);
   }
 
   ///
@@ -1167,7 +1081,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                     : (appParamState.selectedTimeGeoloc != null &&
                             appParamState.selectedTimeGeoloc!.time == element.time)
                         ? Colors.redAccent.withOpacity(0.5)
-                        : (widget.displayTempMap ?? false)
+                        // ignore: use_if_null_to_convert_nulls_to_bools
+                        : (widget.displayTempMap == true)
                             ? Colors.orangeAccent.withOpacity(0.5)
                             : Colors.green[900]?.withOpacity(0.5),
                 child: Stack(
@@ -1528,47 +1443,4 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       }
     }
   }
-
-  ///
-  List<LatLng> buildCirclePolygonPoints({required LatLng center, required double radiusMeters, int sides = 60}) {
-    final double latRad = _degToRad(center.latitude);
-    final double lngRad = _degToRad(center.longitude);
-
-    const double earthRadius = 6378137.0;
-
-    final double angularDistance = radiusMeters / earthRadius;
-
-    final List<LatLng> points = <LatLng>[];
-
-    for (int i = 0; i < sides; i++) {
-      final double bearing = 2 * pi * (i / sides);
-
-      final double sinLat = sin(latRad);
-      final double cosLat = cos(latRad);
-
-      final double sinAd = sin(angularDistance);
-      final double cosAd = cos(angularDistance);
-
-      final double sinLat2 = sinLat * cosAd + cosLat * sinAd * cos(bearing);
-      final double lat2 = asin(sinLat2);
-
-      final double y = sin(bearing) * sinAd * cosLat;
-      final double x = cosAd - sinLat * sinLat2;
-      final double lng2 = lngRad + atan2(y, x);
-
-      points.add(LatLng(_radToDeg(lat2), _radToDeg(lng2)));
-    }
-
-    if (points.isNotEmpty) {
-      points.add(points.first);
-    }
-
-    return points;
-  }
-
-  ///
-  double _degToRad(double deg) => deg * pi / 180.0;
-
-  ///
-  double _radToDeg(double rad) => rad * 180.0 / pi;
 }

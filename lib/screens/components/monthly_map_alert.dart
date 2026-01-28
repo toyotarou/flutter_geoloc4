@@ -12,8 +12,8 @@ import '../../models/temple_latlng_model.dart';
 import '../../models/walk_record_model.dart';
 import '../../utilities/tile_provider.dart';
 
-class GeolocMapAlert extends ConsumerStatefulWidget {
-  const GeolocMapAlert({
+class MonthlyMapAlert extends ConsumerStatefulWidget {
+  const MonthlyMapAlert({
     super.key,
     required this.geolocStateList,
     this.displayTempMap,
@@ -37,10 +37,10 @@ class GeolocMapAlert extends ConsumerStatefulWidget {
   final List<String>? templeGeolocNearlyDateList;
 
   @override
-  ConsumerState<GeolocMapAlert> createState() => _GeolocMapAlertState();
+  ConsumerState<MonthlyMapAlert> createState() => _MonthlyMapAlertState();
 }
 
-class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with ControllersMixin<GeolocMapAlert> {
+class _MonthlyMapAlertState extends ConsumerState<MonthlyMapAlert> with ControllersMixin<MonthlyMapAlert> {
   List<double> latList = <double>[];
   List<double> lngList = <double>[];
 
@@ -105,15 +105,12 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                 ? LatLng(sortedWidgetGeolocStateList[0].latitude.toDouble(),
                     sortedWidgetGeolocStateList[0].longitude.toDouble())
                 : const LatLng(35.718532, 139.586639),
-
             initialZoom: currentZoomEightTeen,
             onPositionChanged: (MapCamera position, bool isMoving) {
               if (isMoving) {
                 appParamNotifier.setCurrentZoom(zoom: position.zoom);
               }
             },
-            // onTap: (TapPosition tapPosition, LatLng latlng) => setState(() => tappedPoints.add(latlng)),
-            //
           ),
           children: <Widget>[
             TileLayer(
@@ -174,22 +171,11 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
     markerList = <Marker>[];
 
     for (final GeolocModel element in sortedWidgetGeolocStateList) {
-      final String time = '${element.time.split(':')[0]}:${element.time.split(':')[1]}';
-
       markerList.add(Marker(
           point: LatLng(element.latitude.toDouble(), element.longitude.toDouble()),
-          child: CircleAvatar(
-            backgroundColor: Colors.black.withValues(alpha: 0.2),
-            child: Column(
-              children: <Widget>[
-                const Spacer(),
-                Text(
-                  time,
-                  style: const TextStyle(fontSize: 10, color: Colors.black),
-                ),
-                const Spacer()
-              ],
-            ),
+          child: Icon(
+            Icons.ac_unit,
+            color: Colors.redAccent.withValues(alpha: 0.3),
           )));
     }
   }

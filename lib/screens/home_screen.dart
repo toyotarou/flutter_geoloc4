@@ -27,6 +27,7 @@ import 'components/geoloc_map_alert.dart';
 import 'components/history_geoloc_list_alert.dart';
 import 'components/kotlin_room_data_display_alert.dart';
 import 'components/kotlin_room_data_list_alert.dart';
+import 'components/monthly_map_alert.dart';
 import 'components/temple_visited_date_display_alert.dart';
 import 'parts/geoloc_dialog.dart';
 import 'parts/menu_head_icon.dart';
@@ -309,6 +310,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
               right: 10,
               child: Row(
                 children: <Widget>[
+                  /*
+
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent.withOpacity(0.2)),
                     onPressed: () {
@@ -365,6 +368,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                     child: const Text('month days'),
                   ),
                   const SizedBox(width: 10),
+
+                  */
+
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent.withOpacity(0.2)),
                     onPressed: () {
@@ -376,7 +382,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
                       GeolocDialog(
                         context: context,
-                        widget: GeolocMapAlert(
+                        widget: MonthlyMapAlert(
                           displayMonthMap: true,
                           date:
                               (widget.baseYm == null) ? DateTime.now() : DateTime.parse('${widget.baseYm}-01 00:00:00'),

@@ -119,6 +119,15 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
   List<Marker> displayGhostGeolocDateList = <Marker>[];
 
+  bool firstDisplayFinished = false;
+
+  GeolocModel? geolocStateListFirstRecord;
+
+  LatLng? _fixedCenter;
+
+  int _markerCacheKey = 0;
+  int _ghostCacheKey = 0;
+
   ///
   @override
   void initState() {
@@ -134,8 +143,20 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
     // ignore: always_specify_types
     globalKeyList = List.generate(1000, (int index) => GlobalKey());
 
+    sortedWidgetGeolocStateList = <GeolocModel>[...widget.geolocStateList]..sort((GeolocModel a, GeolocModel b) {
+        final int d = '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}');
+        if (d != 0) {
+          return d;
+        }
+        return a.time.compareTo(b.time);
+      });
+
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
+        if (!mounted) {
+          return;
+        }
+
         setState(() => isLoading = true);
 
         // ignore: use_if_null_to_convert_nulls_to_bools
@@ -152,18 +173,31 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         Future.delayed(
           const Duration(seconds: 2),
           () {
-            setDefaultBoundsMap();
+            if (!mounted) {
+              return;
+            }
+
+            _rebuildDerivedState();
 
             setState(() => isLoading = false);
           },
         );
       },
     );
+  }
 
-    sortedWidgetGeolocStateList = widget.geolocStateList
-      ..sort(
-          (GeolocModel a, GeolocModel b) => '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}'))
-      ..sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
+  ///
+  @override
+  void didUpdateWidget(covariant GeolocMapAlert oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!identical(oldWidget.geolocStateList, widget.geolocStateList) ||
+        oldWidget.date != widget.date ||
+        oldWidget.displayMonthMap != widget.displayMonthMap ||
+        oldWidget.templeGeolocNearlyDateList != widget.templeGeolocNearlyDateList) {
+      firstDisplayFinished = false;
+      _rebuildDerivedState();
+    }
   }
 
   ///
@@ -174,60 +208,10 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
     super.dispose();
   }
 
-  bool firstDisplayFinished = false;
-
-  GeolocModel? geolocStateListFirstRecord;
-
-  late LatLng _fixedCenter;
-
   ///
   @override
   Widget build(BuildContext context) {
-    if (!firstDisplayFinished) {
-      if (appParamState.mapType == MapType.daily || appParamState.mapType == MapType.monthly) {
-        gStateList = <GeolocModel>[...sortedWidgetGeolocStateList];
-
-        makeSelectedHourMap();
-
-        makeMinMaxLatLng();
-      } else {
-        if (widget.date.yyyymm == recordStartDate.yyyymm) {
-          geolocStateListFirstRecord = sortedWidgetGeolocStateList.first;
-
-          gStateList = sortedWidgetGeolocStateList
-              .where(
-                (GeolocModel element) =>
-                    '${element.year}-${element.month}-${element.day}' ==
-                    DateTime(
-                      geolocStateListFirstRecord!.year.toInt(),
-                      geolocStateListFirstRecord!.month.toInt(),
-                      geolocStateListFirstRecord!.day.toInt(),
-                    ).yyyymmdd,
-              )
-              .toList();
-        } else {
-          gStateList = sortedWidgetGeolocStateList
-              .where(
-                (GeolocModel element) =>
-                    '${element.year}-${element.month}-${element.day}' ==
-                    DateTime(widget.date.year, widget.date.month).yyyymmdd,
-              )
-              .toList();
-        }
-      }
-
-      gStateList
-        ..sort((GeolocModel a, GeolocModel b) =>
-            '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}'))
-        ..sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
-
-      firstDisplayFinished = true;
-    }
-
-    makeMarker();
-
     polylineGeolocList = (!appParamState.isMarkerShow) ? gStateList : <GeolocModel>[];
-
     polylineGeolocList.sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
 
     if (appParamState.polylineGeolocModel != null) {
@@ -238,9 +222,11 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       templePhotoDateMap = templePhotoState.templePhotoDateMap.value!;
     }
 
-    fortyEightColor = utility.getFortyEightColor();
+    if (fortyEightColor.isEmpty) {
+      fortyEightColor = utility.getFortyEightColor();
+    }
 
-    makeDisplayGhostGeolocDateMarker();
+    final LatLng centerForCircle = _fixedCenter ?? _calcDefaultCenter();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -250,7 +236,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         final List<LatLng> circlePoints = (appParamState.selectedRadiusKm == 0)
             ? <LatLng>[]
             : buildCirclePolygonPoints(
-                center: _fixedCenter,
+                center: centerForCircle,
                 radiusMeters: appParamState.selectedRadiusKm * 1000,
                 sides: 90,
               );
@@ -374,10 +360,11 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                     polygons: <Polygon<Object>>[
                       // ignore: always_specify_types
                       Polygon(
-                          points: tappedPoints,
-                          color: Colors.purple.withOpacity(0.1),
-                          borderColor: Colors.purple,
-                          borderStrokeWidth: 2),
+                        points: tappedPoints,
+                        color: Colors.purple.withOpacity(0.1),
+                        borderColor: Colors.purple,
+                        borderStrokeWidth: 2,
+                      ),
                     ],
                   ),
                 ],
@@ -387,7 +374,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                     appParamState.isDisplayGhostGeolocPolyline) ...<Widget>[
                   // ignore: always_specify_types
                   PolylineLayer(polylines: makeGhostGeolocPolyline()),
-
                   MarkerLayer(markers: displayGhostGeolocDateList),
                 ],
               ],
@@ -536,6 +522,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                                   appParamNotifier.setIsDisplayGhostGeolocPolyline(
                                     flag: !appParamState.isDisplayGhostGeolocPolyline,
                                   );
+
+                                  _rebuildGhostMarkersIfNeeded();
                                 },
                                 child: const Stack(
                                   children: <Widget>[
@@ -656,8 +644,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
               //:::::::::::::::::::::::::::::::::::::::::::::::::://
 
-              //:::::::::::::::::::::::::::::::::::::::::::::::::://
-
               Text(
                 gStateList.length.toString(),
                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -685,8 +671,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
               //:::::::::::::::::::::::::::::::::::::::::::::::::://
 
-              //:::::::::::::::::::::::::::::::::::::::::::::::::://
-
               if (appParamState.mapType == MapType.daily) ...<Widget>[
                 Container(
                   decoration:
@@ -703,8 +687,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                         onPressed: () => setState(
                           () {
                             emphasisMarkers.clear();
-
                             emphasisMarkersIndices.clear();
+                            _rebuildMarkersIfNeeded();
                           },
                         ),
                         icon: const Icon(Icons.clear, color: Colors.red),
@@ -758,8 +742,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                               padding: const EdgeInsets.symmetric(horizontal: 5),
                               child: GestureDetector(
                                 onTap: () {
-                                  _fixedCenter =
-                                      LatLng(gStateList.last.latitude.toDouble(), gStateList.last.longitude.toDouble());
+                                  _fixedCenter = _calcDefaultCenter();
 
                                   appParamNotifier.setSelectedRadiusKm(radius: e);
 
@@ -789,17 +772,142 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   }
 
   ///
+  void _rebuildDerivedState() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      sortedWidgetGeolocStateList = <GeolocModel>[...widget.geolocStateList]..sort((GeolocModel a, GeolocModel b) {
+          final int d = '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}');
+          if (d != 0) {
+            return d;
+          }
+          return a.time.compareTo(b.time);
+        });
+
+      _rebuildGStateListForCurrentMode();
+
+      makeSelectedHourMap();
+      makeMinMaxLatLng();
+
+      _fixedCenter = _calcDefaultCenter();
+
+      fortyEightColor = utility.getFortyEightColor();
+
+      _rebuildMarkersIfNeeded();
+      _rebuildGhostMarkersIfNeeded();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      setDefaultBoundsMap();
+    });
+  }
+
+  ///
+  void _rebuildGStateListForCurrentMode() {
+    if (appParamState.mapType == MapType.daily || appParamState.mapType == MapType.monthly) {
+      gStateList = <GeolocModel>[...sortedWidgetGeolocStateList];
+      firstDisplayFinished = true;
+      return;
+    }
+
+    if (sortedWidgetGeolocStateList.isEmpty) {
+      gStateList = <GeolocModel>[];
+      firstDisplayFinished = true;
+      return;
+    }
+
+    if (widget.date.yyyymm == recordStartDate.yyyymm) {
+      geolocStateListFirstRecord = sortedWidgetGeolocStateList.first;
+
+      final String target = DateTime(
+        geolocStateListFirstRecord!.year.toInt(),
+        geolocStateListFirstRecord!.month.toInt(),
+        geolocStateListFirstRecord!.day.toInt(),
+      ).yyyymmdd;
+
+      gStateList =
+          sortedWidgetGeolocStateList.where((GeolocModel e) => '${e.year}-${e.month}-${e.day}' == target).toList();
+    } else {
+      final String target = DateTime(widget.date.year, widget.date.month).yyyymmdd;
+      gStateList =
+          sortedWidgetGeolocStateList.where((GeolocModel e) => '${e.year}-${e.month}-${e.day}' == target).toList();
+    }
+
+    gStateList.sort((GeolocModel a, GeolocModel b) {
+      final int d = '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}');
+      if (d != 0) {
+        return d;
+      }
+      return a.time.compareTo(b.time);
+    });
+
+    firstDisplayFinished = true;
+  }
+
+  ///
+  LatLng _calcDefaultCenter() {
+    if (gStateList.isNotEmpty) {
+      return LatLng(gStateList.last.latitude.toDouble(), gStateList.last.longitude.toDouble());
+    }
+    return const LatLng(35.718532, 139.586639);
+  }
+
+  ///
+  void _rebuildMarkersIfNeeded() {
+    final int key = Object.hash(
+      gStateList.length,
+      appParamState.mapType,
+      appParamState.selectedTimeGeoloc?.time,
+      appParamState.isMarkerShow,
+      emphasisMarkers.length,
+      emphasisMarkersIndices.length,
+      // ignore: use_if_null_to_convert_nulls_to_bools
+      widget.displayTempMap == true,
+    );
+
+    if (key == _markerCacheKey) {
+      return;
+    }
+    _markerCacheKey = key;
+
+    makeMarker();
+  }
+
+  ///
+  void _rebuildGhostMarkersIfNeeded() {
+    final int key = Object.hash(
+      widget.templeGeolocNearlyDateList?.length ?? 0,
+      appParamState.isDisplayGhostGeolocPolyline,
+      fortyEightColor.length,
+    );
+
+    if (key == _ghostCacheKey) {
+      return;
+    }
+    _ghostCacheKey = key;
+
+    makeDisplayGhostGeolocDateMarker();
+  }
+
+  ///
   void setRadiusZoom(Size mapSize, int e) {
+    final LatLng center = _fixedCenter ?? _calcDefaultCenter();
+
     final double radiusMeters = e * 1000;
 
     final double radiusPx = min(mapSize.width, mapSize.height) / 2;
 
-    final double latRad = _fixedCenter.latitude * pi / 180;
+    final double latRad = center.latitude * pi / 180;
 
     final double numerator = 156543.03392 * cos(latRad) * radiusPx;
     final double zoom = log(numerator / radiusMeters) / ln2;
 
-    mapController.moveAndRotate(_fixedCenter, zoom.clamp(1.0, 19.0), 0.0);
+    mapController.moveAndRotate(center, zoom.clamp(1.0, 19.0), 0.0);
   }
 
   ///
@@ -815,6 +923,14 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         monthDaysTempleInfoList = templeState.templeInfoMap[monthDaysDateStr];
 
         monthDaysTemplePhotoDateList = templePhotoDateMap[monthDaysDateStr];
+
+        _fixedCenter = _calcDefaultCenter();
+
+        makeSelectedHourMap();
+        makeMinMaxLatLng();
+
+        _rebuildMarkersIfNeeded();
+        _rebuildGhostMarkersIfNeeded();
       },
     );
 
@@ -827,7 +943,12 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       );
     }
 
-    setDefaultBoundsMap();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      setDefaultBoundsMap();
+    });
   }
 
   ///
@@ -896,6 +1017,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                       appParamNotifier.setMonthGeolocAddMonthButtonLabelList(str: blockYm);
 
                       setState(() => firstDisplayFinished = false);
+
+                      _rebuildDerivedState();
                     },
                     child: Container(
                       key: globalKeyList[e],
@@ -1006,6 +1129,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         emphasisMarkers = set;
 
         emphasisMarkersIndices = map2;
+
+        _rebuildMarkersIfNeeded();
       },
     );
   }
@@ -1047,27 +1172,30 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   ///
   void makeMinMaxLatLng() {
     latList = <double>[];
-
     lngList = <double>[];
-
     latLngList = <LatLng>[];
+    latLngGeolocModelMap = <String, GeolocModel>{};
+
+    final List<GeolocModel> effectiveList = <GeolocModel>[...gStateList];
 
     if (appParamState.monthGeolocAddMonthButtonLabelList.isNotEmpty) {
-      for (final String element in appParamState.monthGeolocAddMonthButtonLabelList) {
-        for (final GeolocModel element2 in geolocState.allGeolocList) {
-          if ('${element2.year}-${element2.month}' == element) {
-            gStateList.add(element2);
+      for (final String ym in appParamState.monthGeolocAddMonthButtonLabelList) {
+        for (final GeolocModel e in geolocState.allGeolocList) {
+          if ('${e.year}-${e.month}' == ym) {
+            effectiveList.add(e);
           }
         }
       }
     }
 
-    for (final GeolocModel element in gStateList) {
-      latList.add(element.latitude.toDouble());
-      lngList.add(element.longitude.toDouble());
+    for (final GeolocModel element in effectiveList) {
+      final double lat = element.latitude.toDouble();
+      final double lng = element.longitude.toDouble();
 
-      final LatLng latlng = LatLng(element.latitude.toDouble(), element.longitude.toDouble());
+      latList.add(lat);
+      lngList.add(lng);
 
+      final LatLng latlng = LatLng(lat, lng);
       latLngList.add(latlng);
 
       latLngGeolocModelMap['${latlng.latitude}|${latlng.longitude}'] = element;
@@ -1106,14 +1234,17 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
       mapController.fitCamera(cameraFit);
 
-      /// これは残しておく
-      // final LatLng newCenter = mapController.camera.center;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
 
-      final double newZoom = mapController.camera.zoom;
+        final double newZoom = mapController.camera.zoom;
 
-      setState(() => currentZoom = newZoom);
+        setState(() => currentZoom = newZoom);
 
-      appParamNotifier.setCurrentZoom(zoom: newZoom);
+        appParamNotifier.setCurrentZoom(zoom: newZoom);
+      });
     }
   }
 
@@ -1122,13 +1253,15 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
     markerList = <Marker>[];
 
     for (final GeolocModel element in gStateList) {
-      final bool isRed = emphasisMarkers.contains(LatLng(element.latitude.toDouble(), element.longitude.toDouble()));
+      final LatLng p = LatLng(element.latitude.toDouble(), element.longitude.toDouble());
 
-      final int? badgeIndex = emphasisMarkersIndices[LatLng(element.latitude.toDouble(), element.longitude.toDouble())];
+      final bool isRed = emphasisMarkers.contains(p);
+
+      final int? badgeIndex = emphasisMarkersIndices[p];
 
       markerList.add(
         Marker(
-          point: LatLng(element.latitude.toDouble(), element.longitude.toDouble()),
+          point: p,
           width: 40,
           height: 40,
           // ignore: use_if_null_to_convert_nulls_to_bools
@@ -1227,58 +1360,30 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
         enclosedMarkers = latLngList.where((LatLng marker) => _isPointInsidePolygon(marker, tappedPoints)).toList());
   }
 
-  /// ポイントがポリゴン内にあるかどうか
-  /// 「射影法（Ray-Casting Algorithm）」
-  bool _isPointInsidePolygon(LatLng point, List<LatLng> latLngList) {
+  ///
+  bool _isPointInsidePolygon(LatLng point, List<LatLng> polygon) {
     int intersectCount = 0;
 
-    for (int i = 0; i < latLngList.length; i++) {
-      /// 全体の処理概要
-      /// ポリゴンの各辺を順番にチェックします。
-      //
-      /// ポリゴンは複数の点で構成されており、各点は頂点（vertex1, vertex2）として扱われます。
-      /// 最後の頂点と最初の頂点をつなぐ処理も行うために (i + 1) % polygon.length を使用しています。
-      ///
-      /// 水平方向に射影（Ray）を投げ、交差点を数える:
-      /// 指定した point から水平方向に仮想的な直線を引き、ポリゴンの各辺と交差する回数を数えます。
-      /// 交差点の数が奇数ならば、その点はポリゴンの内部にあると判定します。
+    for (int i = 0; i < polygon.length; i++) {
+      final LatLng v1 = polygon[i];
+      final LatLng v2 = polygon[(i + 1) % polygon.length];
 
-      final LatLng vertex1 = latLngList[i];
-      final LatLng vertex2 = latLngList[(i + 1) % latLngList.length];
+      final bool crossesY = ((v1.latitude > point.latitude) != (v2.latitude > point.latitude));
+      if (!crossesY) {
+        continue;
+      }
 
-      /// 意図: point が現在の辺（vertex1 と vertex2 の間）と交差しうるかを判定します。
-      /// 動作:
-      /// vertex1 と vertex2 の緯度（latitude）の間に、point の緯度が含まれている場合に true となります。
-      /// vertex1.latitude > point.latitude と vertex2.latitude > point.latitude が異なる値である場合に交差が発生します。
+      final double dy = v2.latitude - v1.latitude;
+      if (dy == 0) {
+        continue;
+      }
 
-      final bool flag1 = ((vertex1.latitude > point.latitude) != (vertex2.latitude > point.latitude));
+      final double xAtY = (v2.longitude - v1.longitude) * (point.latitude - v1.latitude) / dy + v1.longitude;
 
-      /// dbl1 (vertex2.longitude - vertex1.longitude):
-      /// 現在の辺の x方向の長さ（経度差） を計算します。
-      ///
-      /// dbl2 (point.latitude - vertex1.latitude):
-      /// 点（point）と辺の始点（vertex1）の y方向の差（緯度差） を計算します。
-      ///
-      /// dbl3 (vertex2.latitude - vertex1.latitude):
-      /// 辺の y方向の長さ（緯度差） を計算します。
-
-      final double dbl1 = vertex2.longitude - vertex1.longitude;
-      final double dbl2 = point.latitude - vertex1.latitude;
-      final double dbl3 = vertex2.latitude - vertex1.latitude;
-
-      /// 現在の辺が、point.latitude と同じ高さ（y座標）で交差する x座標 を計算します。
-      /// この結果が point.longitude より大きい場合、point の右側に交差点があることを示します。
-
-      final bool flag2 = point.longitude < (dbl1 * dbl2 / dbl3) + vertex1.longitude;
-
-      if (flag1 && flag2) {
+      if (point.longitude < xAtY) {
         intersectCount++;
       }
     }
-
-    /// 意味:
-    /// 交差点の数が奇数の場合、点はポリゴンの内部にあります。
-    /// 偶数の場合、点はポリゴンの外部にあります。
 
     return intersectCount.isOdd;
   }

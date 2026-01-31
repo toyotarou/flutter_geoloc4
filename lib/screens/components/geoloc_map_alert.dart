@@ -221,10 +221,6 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
             '${a.year}-${a.month}-${a.day}'.compareTo('${b.year}-${b.month}-${b.day}'))
         ..sort((GeolocModel a, GeolocModel b) => a.time.compareTo(b.time));
 
-      if (widget.displayTempMap ?? false) {
-        _fixedCenter = LatLng(gStateList.last.latitude.toDouble(), gStateList.last.longitude.toDouble());
-      }
-
       firstDisplayFinished = true;
     }
 
@@ -251,6 +247,14 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       body: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
         final Size mapSize = Size(constraints.maxWidth, constraints.maxHeight);
 
+        final List<LatLng> circlePoints = (appParamState.selectedRadiusKm == 0)
+            ? <LatLng>[]
+            : buildCirclePolygonPoints(
+                center: _fixedCenter,
+                radiusMeters: appParamState.selectedRadiusKm * 1000,
+                sides: 90,
+              );
+
         return Stack(
           children: <Widget>[
             FlutterMap(
@@ -273,6 +277,21 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
                   tileProvider: CachedTileProvider(),
                   userAgentPackageName: 'com.example.app',
                 ),
+
+                if (appParamState.selectedRadiusKm != 0) ...<Widget>[
+                  // ignore: always_specify_types
+                  PolygonLayer(
+                    polygons: <Polygon<Object>>[
+                      // ignore: always_specify_types
+                      Polygon(
+                        points: circlePoints,
+                        color: Colors.blue.withOpacity(0.12),
+                        borderColor: Colors.blue.withOpacity(0.6),
+                        borderStrokeWidth: 2,
+                      ),
+                    ],
+                  ),
+                ],
 
                 if (appParamState.keepAllPolygonsList.isNotEmpty) ...<Widget>[
                   // ignore: always_specify_types
@@ -727,6 +746,43 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
               //:::::::::::::::::::::::::::::::::::::::::::::::::://
             ],
           ),
+          if (widget.displayTempMap ?? false) ...<Widget>[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                const SizedBox.shrink(),
+                Row(
+                    children: <int>[1, 2, 3, 4, 5]
+                        .map((int e) => Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 5),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _fixedCenter =
+                                      LatLng(gStateList.last.latitude.toDouble(), gStateList.last.longitude.toDouble());
+
+                                  appParamNotifier.setSelectedRadiusKm(radius: e);
+
+                                  setRadiusZoom(mapSize, e);
+                                },
+                                child: CircleAvatar(
+                                  backgroundColor: (appParamState.selectedRadiusKm == e)
+                                      ? Colors.yellowAccent.withOpacity(0.2)
+                                      : Colors.black.withOpacity(0.2),
+                                  radius: 15,
+                                  child: Text(
+                                    e.toString(),
+                                    style: TextStyle(
+                                        fontSize: 8,
+                                        color: (appParamState.selectedRadiusKm == e) ? Colors.black : Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ))
+                        .toList())
+              ],
+            )
+          ],
         ],
       ),
     );

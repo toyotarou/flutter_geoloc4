@@ -5,106 +5,92 @@ plugins {
     // ✅ Kotlin を Android で使うためのプラグイン
     id "org.jetbrains.kotlin.android"
 
+    // ✅ Kotlin 2.0+ で Compose を使う場合に必須
+    id "org.jetbrains.kotlin.plugin.compose"
+
     // ✅ Flutter プロジェクトとしてビルドするためのプラグイン
     id "dev.flutter.flutter-gradle-plugin"
 
-    // ✅ KSP（Kotlin Symbol Processing）でRoomなどのコード生成をサポート
-    id "com.google.devtools.ksp" version "1.9.22-1.0.18"
+    // ✅ KSP（Roomなどのコード生成）
+    id "com.google.devtools.ksp"
+}
+
+// ✅ 署名情報は key.properties から読む（パスワードを build.gradle に直書きしない）
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
 android {
-    // ✅ 名前空間（パッケージ名）
     namespace = "com.example.flutter_geoloc3"
-
-    // ✅ 使用する Android SDK のバージョン
     compileSdk 35
-
-    // ✅ NDK のバージョン（使っていなければそのままでOK）
     ndkVersion "27.0.12077973"
 
     defaultConfig {
-        // ✅ アプリのID（Google Playなどで識別に使用）
         applicationId = "com.example.flutter_geoloc3"
-
-        // ✅ 最小対応APIレベル（Flutterの設定に準拠）
         minSdk flutter.minSdkVersion
-
-        // ✅ 対象APIレベル
         targetSdk 35
-
-        // ✅ バージョンコードと表示名
         versionCode 1
         versionName "1.0.0"
     }
 
     signingConfigs {
         release {
-            // ✅ リリースビルド用の署名設定（アプリ公開時に必要）
-            storeFile file("/Users/toyodahideyuki/my-release-key.jks")
-            storePassword "hidechy4819"
-            keyAlias "my-key-alias"
-            keyPassword "hidechy4819"
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties["storeFile"])
+                storePassword keystoreProperties["storePassword"]
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+            }
         }
     }
 
     buildTypes {
         release {
-            // ✅ 難読化（コードを短縮し解析困難に）
             minifyEnabled true
-
-            // ✅ リソース削除（使われてない画像・レイアウトなどを削除）
             shrinkResources true
-
-            // ✅ 難読化に使う設定ファイルを指定
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
-            // ✅ 署名設定
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
     compileOptions {
-        // ✅ Java 17 を使用
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        // ✅ Kotlin でも Java 17 のバイトコードを生成
         jvmTarget = "17"
     }
 
     buildFeatures {
-        // ✅ Jetpack Compose を有効化（Kotlin UI用）
         compose = true
     }
 
-    composeOptions {
-        // ✅ Compose の Kotlin コンパイラ拡張バージョン（Flutterとの相性に注意）
-        kotlinCompilerExtensionVersion = "1.5.10"
-    }
+    // ⚠️ Kotlin 2.x + Compose では compose compiler plugin を使うため、ここは基本不要
+    // composeOptions {
+    //     kotlinCompilerExtensionVersion = "1.5.10"
+    // }
 }
 
 flutter {
-    // ✅ Flutter プロジェクトのルートを指定（相対パス）
     source "../.."
 }
 
-// ✅ Room ライブラリのバージョン（KSPと合わせて使用）
 def roomVersion = "2.6.1"
 
 dependencies {
-    // ✅ Jetpack Compose の UI コンポーネント群
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.compose.ui:ui:1.5.0")
     implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
     debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
 
-    // ✅ Room データベース（Kotlin拡張付き）
     implementation "androidx.room:room-runtime:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
-
-    // ✅ KSP 経由で Room の DAO/Entity コードを自動生成
     ksp "androidx.room:room-compiler:$roomVersion"
 }

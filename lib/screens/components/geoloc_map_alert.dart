@@ -868,6 +868,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       emphasisMarkersIndices.length,
       // ignore: use_if_null_to_convert_nulls_to_bools
       widget.displayTempMap == true,
+      appParamState.monthGeolocAddMonthButtonLabelList.length,
     );
 
     if (key == _markerCacheKey) {
@@ -1252,7 +1253,19 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   void makeMarker() {
     markerList = <Marker>[];
 
-    for (final GeolocModel element in gStateList) {
+    final List<GeolocModel> effectiveList = <GeolocModel>[...gStateList];
+
+    if (appParamState.monthGeolocAddMonthButtonLabelList.isNotEmpty) {
+      for (final String ym in appParamState.monthGeolocAddMonthButtonLabelList) {
+        for (final GeolocModel e in geolocState.allGeolocList) {
+          if ('${e.year}-${e.month}' == ym) {
+            effectiveList.add(e);
+          }
+        }
+      }
+    }
+
+    for (final GeolocModel element in effectiveList) {
       final LatLng p = LatLng(element.latitude.toDouble(), element.longitude.toDouble());
 
       final bool isRed = emphasisMarkers.contains(p);

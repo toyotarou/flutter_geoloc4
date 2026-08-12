@@ -151,7 +151,7 @@
 //           iconFadeoutOverlay(
 //             context: context,
 //             targetKey: monthDaysPageViewKey,
-//             icon: const Icon(FontAwesomeIcons.toriiGate),
+//             icon: const FaIcon(FontAwesomeIcons.toriiGate),
 //             overlayWidth: 40,
 //           );
 //         }
@@ -837,7 +837,7 @@
 //       iconFadeoutOverlay(
 //         context: context,
 //         targetKey: monthDaysPageViewKey,
-//         icon: const Icon(FontAwesomeIcons.toriiGate),
+//         icon: const FaIcon(FontAwesomeIcons.toriiGate),
 //         overlayWidth: 40,
 //       );
 //     }
@@ -953,7 +953,7 @@
 //
 //                   setDefaultBoundsMap();
 //                 },
-//                 icon: const Icon(FontAwesomeIcons.expand),
+//                 icon: const FaIcon(FontAwesomeIcons.expand),
 //               ),
 //             ),
 //           ),

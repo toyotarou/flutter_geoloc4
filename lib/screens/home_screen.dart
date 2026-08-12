@@ -282,7 +282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                     onPressed: () {
                       GeolocDialog(context: context, widget: const KotlinRoomDataDisplayAlert());
                     },
-                    icon: Icon(FontAwesomeIcons.k, color: Colors.white.withOpacity(0.3))),
+                    icon: FaIcon(FontAwesomeIcons.k, color: Colors.white.withOpacity(0.3))),
                 IconButton(
                   onPressed: () {
                     GeolocDialog(
@@ -290,7 +290,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                       widget: const TempleVisitedDateDisplayAlert(),
                     );
                   },
-                  icon: Icon(FontAwesomeIcons.toriiGate, size: 20, color: Colors.white.withOpacity(0.3)),
+                  icon: FaIcon(FontAwesomeIcons.toriiGate, size: 20, color: Colors.white.withOpacity(0.3)),
                 ),
               ],
             ),
@@ -674,7 +674,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
                 Positioned(
                   bottom: 10,
                   right: 10,
-                  child: Icon(FontAwesomeIcons.toriiGate, size: 15, color: Colors.white.withOpacity(0.5)),
+                  child: FaIcon(FontAwesomeIcons.toriiGate, size: 15, color: Colors.white.withOpacity(0.5)),
                 ),
               ],
               Container(

@@ -164,7 +164,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
           iconFadeoutOverlay(
             context: context,
             targetKey: monthDaysPageViewKey,
-            icon: const Icon(FontAwesomeIcons.toriiGate),
+            icon: const FaIcon(FontAwesomeIcons.toriiGate),
             overlayWidth: 40,
           );
         }
@@ -939,7 +939,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
       iconFadeoutOverlay(
         context: context,
         targetKey: monthDaysPageViewKey,
-        icon: const Icon(FontAwesomeIcons.toriiGate),
+        icon: const FaIcon(FontAwesomeIcons.toriiGate),
         overlayWidth: 40,
       );
     }
@@ -1057,7 +1057,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
 
                   setDefaultBoundsMap();
                 },
-                icon: const Icon(FontAwesomeIcons.expand),
+                icon: const FaIcon(FontAwesomeIcons.expand),
               ),
             ),
           ),

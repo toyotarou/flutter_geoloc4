@@ -39,6 +39,15 @@ class CachedNetworkImage extends ImageProvider<CachedNetworkImage> {
   final String url;
   final BaseCacheManager cacheManager;
 
+  /// ImageCache のキーとして URL で同一判定させる。
+  /// これが無いと毎回別キー扱いになり、同じタイルでもメモリキャッシュが効かず再デコードされていた
+  @override
+  bool operator ==(Object other) => other is CachedNetworkImage && other.url == url;
+
+  ///
+  @override
+  int get hashCode => url.hashCode;
+
   ///
   @override
   Future<CachedNetworkImage> obtainKey(ImageConfiguration configuration) {

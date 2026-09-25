@@ -128,6 +128,9 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   int _markerCacheKey = 0;
   int _ghostCacheKey = 0;
 
+  /// build のたびに TileProvider を作り直すとタイルレイヤーが作り直されるため、1つを使い回す
+  final CachedTileProvider _tileProvider = CachedTileProvider();
+
   ///
   @override
   void initState() {
@@ -205,6 +208,8 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
   void dispose() {
     scrollController.dispose();
 
+    mapController.dispose();
+
     super.dispose();
   }
 
@@ -260,7 +265,7 @@ class _GeolocMapAlertState extends ConsumerState<GeolocMapAlert> with Controller
               children: <Widget>[
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.jp/{z}/{x}/{y}.png',
-                  tileProvider: CachedTileProvider(),
+                  tileProvider: _tileProvider,
                   userAgentPackageName: 'com.example.app',
                 ),
 

@@ -38,6 +38,15 @@ class _KotlinRoomDataDisplayAlertState extends ConsumerState<KotlinRoomDataDispl
   Timer? _timer;
 
   ///
+  @override
+  void dispose() {
+    // 10ms 間隔のカウントダウンが、画面を閉じた後も setState し続けないように止める
+    _timer?.cancel();
+
+    super.dispose();
+  }
+
+  ///
   Future<void> _requestPermissions() async {
     final PermissionStatus locationStatus = await Permission.location.request();
     final PermissionStatus fgServiceStatus = await Permission.ignoreBatteryOptimizations.request();
@@ -244,6 +253,11 @@ class _KotlinRoomDataDisplayAlertState extends ConsumerState<KotlinRoomDataDispl
 
       final double newRemaining = (maxTime - elapsed).clamp(0.0, maxTime);
 
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
       setState(() => _remainingTime = newRemaining);
 
       if (newRemaining <= 0.0) {
@@ -308,7 +322,11 @@ class _KotlinRoomDataDisplayAlertState extends ConsumerState<KotlinRoomDataDispl
     }
 
     // ignore: always_specify_types
-    Future.delayed(const Duration(seconds: 5), () => setState(() => _isLoading2 = false));
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() => _isLoading2 = false);
+      }
+    });
   }
 
   ///

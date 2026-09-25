@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../collections/geoloc.dart';
@@ -7,6 +9,7 @@ import '../../models/geoloc_model.dart';
 import '../../models/temple_latlng_model.dart';
 import '../../models/walk_record_model.dart';
 import '../../ripository/geolocs_repository.dart';
+import '../../ripository/isar_repository.dart';
 import '../../utilities/utilities.dart';
 import '../parts/geoloc_dialog.dart';
 import 'pickup_geoloc_display_alert.dart';
@@ -44,17 +47,63 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
 
   bool isLoading = false;
 
+  /// Isar の変更監視（以前は build のたびに全件読み込み → setState → build … を繰り返していた）
+  IsarChangeWatcher? _isarChangeWatcher;
+
+  /// 最新の記録（経過秒数の表示に使う）
+  Geoloc? _recentGeoloc;
+
+  bool _recentGeolocLoaded = false;
+
+  /// 経過秒数は1秒ごとにこの部分だけ更新する（画面全体は作り直さない）
+  final ValueNotifier<String> _diffSecondsNotifier = ValueNotifier<String>('');
+
+  Timer? _diffTimer;
+
   ///
-  void _init() => _makeGeolocList();
+  @override
+  void initState() {
+    super.initState();
+
+    _init();
+
+    _diffTimer = Timer.periodic(const Duration(seconds: 1), (_) => makeDiffSeconds());
+
+    // ignore: always_specify_types
+    Future(() async {
+      await IsarRepository.configure();
+
+      if (!mounted) {
+        return;
+      }
+
+      _isarChangeWatcher = IsarChangeWatcher(
+        streams: <Stream<void>>[IsarRepository.isar.geolocs.watchLazy()],
+        onChanged: _init,
+      );
+    });
+  }
+
+  ///
+  @override
+  void dispose() {
+    _isarChangeWatcher?.dispose();
+    _diffTimer?.cancel();
+    _diffSecondsNotifier.dispose();
+
+    super.dispose();
+  }
+
+  ///
+  void _init() {
+    _makeGeolocList();
+
+    _makeRecentGeoloc();
+  }
 
   ///
   @override
   Widget build(BuildContext context) {
-    // ignore: always_specify_types
-    Future(_init);
-
-    makeDiffSeconds();
-
     makePickupGeolocList();
 
     return Scaffold(
@@ -103,7 +152,13 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
                   Divider(color: Colors.white.withOpacity(0.5), thickness: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[const SizedBox.shrink(), Text(diffSeconds)],
+                    children: <Widget>[
+                      const SizedBox.shrink(),
+                      ValueListenableBuilder<String>(
+                        valueListenable: _diffSecondsNotifier,
+                        builder: (BuildContext context, String value, Widget? child) => Text(value),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -117,25 +172,42 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
 
   ///
   Future<void> _makeGeolocList() async {
-    geolocMap = <String, List<Geoloc>>{};
-
-    GeolocRepository().getAllIsarGeoloc().then(
+    await GeolocRepository().getAllIsarGeoloc().then(
       (List<Geoloc>? value) {
         if (mounted) {
           setState(
             () {
               geolocList = value;
 
+              // 読み込みが終わってから入れ替える
+              final Map<String, List<Geoloc>> map = <String, List<Geoloc>>{};
+
               if (value!.isNotEmpty) {
                 for (final Geoloc element in value) {
-                  (geolocMap[element.date] ??= <Geoloc>[]).add(element);
+                  (map[element.date] ??= <Geoloc>[]).add(element);
                 }
               }
+
+              geolocMap = map;
             },
           );
         }
       },
     );
+  }
+
+  ///
+  Future<void> _makeRecentGeoloc() async {
+    final Geoloc? value = await GeolocRepository().getRecentOneGeoloc();
+
+    if (!mounted) {
+      return;
+    }
+
+    _recentGeoloc = value;
+    _recentGeolocLoaded = true;
+
+    makeDiffSeconds();
   }
 
   ///
@@ -154,7 +226,8 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
 
     final List<Geoloc> roopGeolocList2 = <Geoloc>[];
 
-    final List<String> timeList = <String>[];
+    // List.contains（線形探索）ではなく Set で判定
+    final Set<String> timeList = <String>{};
     for (final Geoloc element in roopGeolocList) {
       timeList.add('${element.time.split(':')[0]}:${element.time.split(':')[1]}');
     }
@@ -229,11 +302,14 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
     List<Geoloc> roopGeolocList = <Geoloc>[];
 
     if (geolocMap[widget.date.yyyymmdd] != null) {
-      roopGeolocList = geolocMap[widget.date.yyyymmdd]!;
+      // コピーしてから加工する（以前は geolocMap 内のリストに直接 addAll していたため、
+      // build のたびに Kotlin 側の記録が元データへ追記され続けていた）
+      roopGeolocList = <Geoloc>[...geolocMap[widget.date.yyyymmdd]!];
 
       final List<Geoloc> roopGeolocList2 = <Geoloc>[];
 
-      final List<String> timeList = <String>[];
+      // List.contains（線形探索）ではなく Set で判定
+      final Set<String> timeList = <String>{};
       for (final Geoloc element in roopGeolocList) {
         timeList.add('${element.time.split(':')[0]}:${element.time.split(':')[1]}');
       }
@@ -270,27 +346,32 @@ class _DailyGeolocDisplayAlertState extends State<DailyGeolocDisplayAlert> {
 
   ///
   void makeDiffSeconds() {
-    GeolocRepository().getRecentOneGeoloc().then(
-      (Geoloc? value) {
-        int secondDiff = 0;
+    // 以前は build のたびに DB から最新1件を取り直していた。読み込み済みの最新記録から計算する
+    if (!_recentGeolocLoaded) {
+      return;
+    }
 
-        if (value != null) {
-          secondDiff = DateTime.now()
-              .difference(
-                DateTime(
-                  value.date.split('-')[0].toInt(),
-                  value.date.split('-')[1].toInt(),
-                  value.date.split('-')[2].toInt(),
-                  value.time.split(':')[0].toInt(),
-                  value.time.split(':')[1].toInt(),
-                  value.time.split(':')[2].toInt(),
-                ),
-              )
-              .inSeconds;
-        }
+    final Geoloc? value = _recentGeoloc;
 
-        diffSeconds = secondDiff.toString().padLeft(2, '0');
-      },
-    );
+    int secondDiff = 0;
+
+    if (value != null) {
+      secondDiff = DateTime.now()
+          .difference(
+            DateTime(
+              value.date.split('-')[0].toInt(),
+              value.date.split('-')[1].toInt(),
+              value.date.split('-')[2].toInt(),
+              value.time.split(':')[0].toInt(),
+              value.time.split(':')[1].toInt(),
+              value.time.split(':')[2].toInt(),
+            ),
+          )
+          .inSeconds;
+    }
+
+    diffSeconds = secondDiff.toString().padLeft(2, '0');
+
+    _diffSecondsNotifier.value = diffSeconds;
   }
 }

@@ -88,7 +88,15 @@ class AppParams extends _$AppParams {
   void setIsMarkerShow({required bool flag}) => state = state.copyWith(isMarkerShow: flag);
 
   ///
-  void setCurrentZoom({required double zoom}) => state = state.copyWith(currentZoom: zoom);
+  void setCurrentZoom({required double zoom}) {
+    // 地図のパン中は毎フレーム呼ばれる。値が変わらないときに state を作り直すと
+    // appParamState を watch している全画面が再ビルドされるため、変化したときだけ更新する
+    if (state.currentZoom == zoom) {
+      return;
+    }
+
+    state = state.copyWith(currentZoom: zoom);
+  }
 
   ///
   void setCurrentPaddingIndex({required int index}) => state = state.copyWith(currentPaddingIndex: index);
@@ -132,7 +140,13 @@ class AppParams extends _$AppParams {
       state = state.copyWith(monthGeolocAddMonthButtonLabelList: <String>[]);
 
   ///
-  void updateOverlayPosition(Offset newPos) => state = state.copyWith(overlayPosition: newPos);
+  void updateOverlayPosition(Offset newPos) {
+    if (state.overlayPosition == newPos) {
+      return;
+    }
+
+    state = state.copyWith(overlayPosition: newPos);
+  }
 
   ///
   void setFirstOverlayParams({required List<OverlayEntry>? firstEntries}) =>

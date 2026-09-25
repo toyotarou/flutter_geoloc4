@@ -34,17 +34,19 @@ class TemplePhotoNotifier extends StateNotifier<TemplePhotoResponseState> {
       final Map<String, List<TemplePhotoModel>> map = <String, List<TemplePhotoModel>>{};
       final Map<String, List<TemplePhotoModel>> map2 = <String, List<TemplePhotoModel>>{};
 
-      for (int i = 0; i < (templePhoto['data'] as List<dynamic>).length; i++) {
-        final TemplePhotoModel value = TemplePhotoModel.fromJson(templePhoto['data'][i] as Map<String, dynamic>);
+      // JSON → モデル変換は1回だけ（以前は同じリストを2回パースしていた）
+      final List<TemplePhotoModel> models = <TemplePhotoModel>[
+        for (final dynamic item in templePhoto['data'] as List<dynamic>)
+          TemplePhotoModel.fromJson(item as Map<String, dynamic>),
+      ];
 
+      for (final TemplePhotoModel value in models) {
         map[value.date.yyyymmdd] = <TemplePhotoModel>[];
 
         map2[value.temple] = <TemplePhotoModel>[];
       }
 
-      for (int i = 0; i < (templePhoto['data'] as List<dynamic>).length; i++) {
-        final TemplePhotoModel value = TemplePhotoModel.fromJson(templePhoto['data'][i] as Map<String, dynamic>);
-
+      for (final TemplePhotoModel value in models) {
         if (value.date.isAfter(DateTime(2023, 3))) {
           list.add(value);
 

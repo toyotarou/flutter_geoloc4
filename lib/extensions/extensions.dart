@@ -10,37 +10,32 @@ extension ContextEx on BuildContext {
   Size get screenSize => MediaQuery.of(this).size;
 }
 
+/// DateFormat / NumberFormat / RegExp は生成コストが高いので使い回す（初回アクセス時に1度だけ生成）
+/// カレンダー表示などで1画面あたり数百回呼ばれるため効果が大きい
+final DateFormat _yyyymmddFormat = DateFormat('yyyy-MM-dd');
+final DateFormat _yyyymmFormat = DateFormat('yyyy-MM');
+final DateFormat _mmddFormat = DateFormat('MM-dd');
+final DateFormat _yyyyFormat = DateFormat('yyyy');
+final DateFormat _mmFormat = DateFormat('MM');
+final DateFormat _ddFormat = DateFormat('dd');
+final DateFormat _dateTimeParseFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
+final NumberFormat _currencyFormat = NumberFormat('#,###');
+final RegExp _halfAlphanumericRegExp = RegExp(r'^[a-zA-Z0-9]+$');
+final RegExp _fullAlphanumericRegExp = RegExp(r'^[Ａ-Ｚａ-ｚ０-９]+$');
+
 ///
 extension DateTimeEx on DateTime {
-  String get yyyymmdd {
-    final DateFormat outputFormat = DateFormat('yyyy-MM-dd');
-    return outputFormat.format(this);
-  }
+  String get yyyymmdd => _yyyymmddFormat.format(this);
 
-  String get yyyymm {
-    final DateFormat outputFormat = DateFormat('yyyy-MM');
-    return outputFormat.format(this);
-  }
+  String get yyyymm => _yyyymmFormat.format(this);
 
-  String get mmdd {
-    final DateFormat outputFormat = DateFormat('MM-dd');
-    return outputFormat.format(this);
-  }
+  String get mmdd => _mmddFormat.format(this);
 
-  String get yyyy {
-    final DateFormat outputFormat = DateFormat('yyyy');
-    return outputFormat.format(this);
-  }
+  String get yyyy => _yyyyFormat.format(this);
 
-  String get mm {
-    final DateFormat outputFormat = DateFormat('MM');
-    return outputFormat.format(this);
-  }
+  String get mm => _mmFormat.format(this);
 
-  String get dd {
-    final DateFormat outputFormat = DateFormat('dd');
-    return outputFormat.format(this);
-  }
+  String get dd => _ddFormat.format(this);
 
   String get youbiStr {
     final DateFormat outputFormat = DateFormat('EEEE');
@@ -53,29 +48,22 @@ extension DateTimeEx on DateTime {
 const int _fullLengthCode = 65248;
 
 extension StringEx on String {
-  DateTime toDateTime() {
-    final DateFormat dateFormatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    return dateFormatter.parseStrict(this);
-  }
+  DateTime toDateTime() => _dateTimeParseFormat.parseStrict(this);
 
   int toInt() {
     return int.parse(this);
   }
 
-  String toCurrency() {
-    final NumberFormat formatter = NumberFormat('#,###');
-    return formatter.format(int.parse(this));
-  }
+  String toCurrency() => _currencyFormat.format(int.parse(this));
 
   double toDouble() {
     return double.parse(this);
   }
 
   String alphanumericToFullLength() {
-    final RegExp regex = RegExp(r'^[a-zA-Z0-9]+$');
     final Iterable<String> string = runes.map<String>((int rune) {
       final String char = String.fromCharCode(rune);
-      return regex.hasMatch(char)
+      return _halfAlphanumericRegExp.hasMatch(char)
           ? String.fromCharCode(rune + _fullLengthCode)
           : char;
     });
@@ -83,10 +71,9 @@ extension StringEx on String {
   }
 
   String alphanumericToHalfLength() {
-    final RegExp regex = RegExp(r'^[Ａ-Ｚａ-ｚ０-９]+$');
     final Iterable<String> string = runes.map<String>((int rune) {
       final String char = String.fromCharCode(rune);
-      return regex.hasMatch(char)
+      return _fullAlphanumericRegExp.hasMatch(char)
           ? String.fromCharCode(rune - _fullLengthCode)
           : char;
     });

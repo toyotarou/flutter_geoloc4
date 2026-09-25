@@ -12,9 +12,10 @@ class KotlinRoomDataRepository {
 
   ///
   Future<void> inputKotlinRoomDataList({required List<KotlinRoomData> kotlinRoomDataList}) async {
-    for (final KotlinRoomData element in kotlinRoomDataList) {
-      inputKotlinRoomData(kotlinRoomData: element);
-    }
+    await IsarRepository.configure();
+
+    // 以前は1件ずつ（完了を待たずに）トランザクションを開いていた。1トランザクションでまとめて登録し、完了を待つ
+    await IsarRepository.isar.writeTxn(() async => IsarRepository.isar.kotlinRoomDatas.putAll(kotlinRoomDataList));
   }
 
   ///
@@ -25,14 +26,15 @@ class KotlinRoomDataRepository {
 
   ///
   Future<void> deleteKotlinRoomDataList({required List<int> idList}) async {
-    for (final int id in idList) {
-      deleteKotlinRoomData(id: id);
-    }
+    await IsarRepository.configure();
+
+    // 以前は1件ずつ（完了を待たずに）トランザクションを開いていた。1トランザクションでまとめて削除し、完了を待つ
+    await IsarRepository.isar.writeTxn(() => IsarRepository.isar.kotlinRoomDatas.deleteAll(idList));
   }
 
   ///
   Future<void> deleteKotlinRoomData({required int id}) async {
     await IsarRepository.configure();
-    IsarRepository.isar.writeTxn(() => IsarRepository.isar.kotlinRoomDatas.delete(id));
+    await IsarRepository.isar.writeTxn(() => IsarRepository.isar.kotlinRoomDatas.delete(id));
   }
 }

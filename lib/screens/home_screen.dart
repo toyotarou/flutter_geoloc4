@@ -129,6 +129,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
   List<Geoloc>? geolocList = <Geoloc>[];
   Map<String, List<Geoloc>> geolocMap = <String, List<Geoloc>>{};
 
+  /// Isar の変更監視（以前は build のたびに全件読み込み → setState → build … を繰り返していた）
+  IsarChangeWatcher? _isarChangeWatcher;
+
+  /// geolocMap を読み直すたびに増やす（月の位置情報リストの作り直し判定に使う）
+  int _geolocVersion = 0;
+
+  //---- build のたびに作り直さないためのキャッシュ
+  List<GeolocModel> _monthGeolocModelList = <GeolocModel>[];
+  List<GeolocModel>? _monthGeolocSourceList;
+  int _monthGeolocSourceVersion = -1;
+
+  /// appParams に渡し済みの区市町村データ（同じものを build のたびに渡し直さないため）
+  List<MunicipalModel>? _keptTokyoMunicipalList;
+  Map<String, MunicipalModel>? _keptTokyoMunicipalMap;
+
   ///
   @override
   void initState() {
@@ -140,6 +155,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
       // debugPrint(message);
 
       setState(() => bgText = message);
+
+      // 位置情報を受信した直後にバックグラウンド側で Isar へ追記されるので、少し待ってから読み直す
+      _isarChangeWatcher?.notify();
     });
 
     // ignore: always_specify_types
@@ -168,28 +186,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
     walkRecordNotifier.getYearWalkRecord(yearmonth: (widget.baseYm != null) ? widget.baseYm! : DateTime.now().yyyymm);
 
     templeNotifier.getAllTempleModel();
+
+    // Isar の位置情報は最初に1回読み込み、以降は変更があったとき（と位置情報を受信したとき）だけ読み直す
+    _makeGeolocList();
+
+    // ignore: always_specify_types
+    Future(() async {
+      await IsarRepository.configure();
+
+      if (!mounted) {
+        return;
+      }
+
+      _isarChangeWatcher = IsarChangeWatcher(
+        streams: <Stream<void>>[IsarRepository.isar.geolocs.watchLazy()],
+        onChanged: _makeGeolocList,
+        debounce: const Duration(seconds: 1),
+      );
+    });
   }
 
   ///
   @override
   void dispose() {
+    _isarChangeWatcher?.dispose();
     _bgDisposer.cancel();
     _statusDisposer.cancel();
     super.dispose();
   }
 
   ///
-  void _init() {
-    /// setState地獄に陥るのでisarからのデータ取得を追加してはいけない
-    _makeGeolocList();
-  }
-
-  ///
   @override
   Widget build(BuildContext context) {
-    // ignore: always_specify_types
-    Future(_init);
-
     if (widget.baseYm != null && !baseYmSetFlag) {
       // ignore: always_specify_types
       Future(() => calendarNotifier.setCalendarYearMonth(baseYm: widget.baseYm));
@@ -197,19 +225,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
       baseYmSetFlag = true;
     }
 
-    // ignore: always_specify_types
-    final List<GeolocModel> monthGeolocModelList = List.from(geolocState.geolocList);
-//    final List<GeolocModel> monthGeolocModelList = List.from(geolocStateList);
+    // サーバーの今月分 + 端末(Isar)の記録。元データが変わったときだけ作り直す
+    if (_monthGeolocSourceList != geolocState.geolocList || _monthGeolocSourceVersion != _geolocVersion) {
+      _monthGeolocSourceList = geolocState.geolocList;
+      _monthGeolocSourceVersion = _geolocVersion;
 
-    if (geolocMap.isNotEmpty) {
+      // ignore: always_specify_types
+      final List<GeolocModel> list = List.from(geolocState.geolocList);
+
       geolocMap.forEach((String key, List<Geoloc> value) {
         for (final Geoloc element in value) {
-          monthGeolocModelList.add(
+          final List<String> exDate = element.date.split('-');
+
+          list.add(
             GeolocModel(
               id: 0,
-              year: element.date.split('-')[0],
-              month: element.date.split('-')[1],
-              day: element.date.split('-')[2],
+              year: exDate[0],
+              month: exDate[1],
+              day: exDate[2],
               time: element.time,
               latitude: element.latitude,
               longitude: element.longitude,
@@ -217,32 +250,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
           );
         }
       });
+
+      _monthGeolocModelList = list;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) {
-        return;
-      }
+    final List<GeolocModel> monthGeolocModelList = _monthGeolocModelList;
 
-      appParamNotifier.setKeepTokyoMunicipalList(list: widget.tokyoMunicipalList);
-      appParamNotifier.setKeepTokyoMunicipalMap(map: widget.tokyoMunicipalMap);
+    // 区市町村データは受け取ったもの（参照）が変わったときだけ appParams に渡す。
+    // 以前は build のたびに渡し直していたため、appParams を watch している画面（地図など）が毎回再ビルドされていた
+    if (_keptTokyoMunicipalList != widget.tokyoMunicipalList || _keptTokyoMunicipalMap != widget.tokyoMunicipalMap) {
+      _keptTokyoMunicipalList = widget.tokyoMunicipalList;
+      _keptTokyoMunicipalMap = widget.tokyoMunicipalMap;
 
-      //===========================================//
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) {
+          return;
+        }
 
-      final List<List<List<List<double>>>> allPolygonsList = <List<List<List<double>>>>[];
+        appParamNotifier.setKeepTokyoMunicipalList(list: widget.tokyoMunicipalList);
+        appParamNotifier.setKeepTokyoMunicipalMap(map: widget.tokyoMunicipalMap);
 
-      for (final MunicipalModel element in widget.tokyoMunicipalList) {
-        allPolygonsList.addAll(element.polygons);
-      }
+        //===========================================//
 
-      ///////////////////////
+        final List<List<List<List<double>>>> allPolygonsList = <List<List<List<double>>>>[];
 
-      // ignore: always_specify_types
-      Future(() {
-        appParamNotifier.setKeepAllPolygonsList(list: allPolygonsList);
+        for (final MunicipalModel element in widget.tokyoMunicipalList) {
+          allPolygonsList.addAll(element.polygons);
+        }
+
+        ///////////////////////
+
+        // ignore: always_specify_types
+        Future(() {
+          appParamNotifier.setKeepAllPolygonsList(list: allPolygonsList);
+        });
+        //===========================================//
       });
-      //===========================================//
-    });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -873,18 +917,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ControllersMixin<H
 
   ///
   Future<void> _makeGeolocList() async {
-    geolocMap.clear();
-
-    GeolocRepository().getAllIsarGeoloc().then((List<Geoloc>? value) {
+    await GeolocRepository().getAllIsarGeoloc().then((List<Geoloc>? value) {
       if (mounted) {
         setState(() {
           geolocList = value;
 
+          // 読み込みが終わってから入れ替える（以前は先に clear していたため、読み込み中は一瞬空になっていた）
+          final Map<String, List<Geoloc>> map = <String, List<Geoloc>>{};
+
           if (value!.isNotEmpty) {
             for (final Geoloc element in value) {
-              (geolocMap[element.date] ??= <Geoloc>[]).add(element);
+              (map[element.date] ??= <Geoloc>[]).add(element);
             }
           }
+
+          geolocMap = map;
+
+          _geolocVersion++;
         });
       }
     });

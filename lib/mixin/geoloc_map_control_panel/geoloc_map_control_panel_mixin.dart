@@ -162,7 +162,8 @@ mixin GeolocMapControlPanelAlertMixin on ConsumerState<GeolocMapControlPanelWidg
 
                           //--------------------------------------------------------------//
                           for (int i = autoPlayTimeGeolocIndex; i < widget.geolocStateList.length; i++) {
-                            if (currentTaskId != _taskId) {
+                            // 2秒待つ間に地図を閉じた場合、破棄済みの State で setState しないように止める
+                            if (!mounted || currentTaskId != _taskId) {
                               return;
                             }
 
@@ -194,6 +195,10 @@ mixin GeolocMapControlPanelAlertMixin on ConsumerState<GeolocMapControlPanelWidg
                           }
 
                           //--------------------------------------------------------------//
+
+                          if (!mounted) {
+                            return;
+                          }
 
                           mapControllerBgColorChange();
                         },

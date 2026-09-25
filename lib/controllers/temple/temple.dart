@@ -66,10 +66,13 @@ class TempleController extends _$TempleController {
 
       //===============================================================================//
 
-      // ignore: avoid_dynamic_calls
-      for (int i = 0; i < templeValue.length.toString().toInt(); i++) {
+      // JSON → モデル変換は1回だけ（以前は同じリストを2回パースしていた）
+      final List<TempleModel> templeModelList = <TempleModel>[
         // ignore: avoid_dynamic_calls
-        final TempleModel val = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
+        for (final dynamic item in templeValue as List<dynamic>) TempleModel.fromJson(item as Map<String, dynamic>),
+      ];
+
+      for (final TempleModel val in templeModelList) {
 
         templeInfoMap['${val.year}-${val.month}-${val.day}'] = <TempleInfoModel>[];
 
@@ -83,10 +86,7 @@ class TempleController extends _$TempleController {
         ////////////////////////////////////////////
       }
 
-      // ignore: avoid_dynamic_calls
-      for (int i = 0; i < templeValue.length.toString().toInt(); i++) {
-        // ignore: avoid_dynamic_calls
-        final TempleModel val2 = TempleModel.fromJson(templeValue[i] as Map<String, dynamic>);
+      for (final TempleModel val2 in templeModelList) {
 
         final String date = '${val2.year}-${val2.month}-${val2.day}';
 
